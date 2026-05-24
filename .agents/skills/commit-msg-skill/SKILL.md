@@ -17,7 +17,7 @@ metadata:
 
 ## How I do it
 
-1. Read `progress.txt` untuk melihat log terakhir
-2. Sederhanakan log terakhir tersebut menjadi hanya satu baris kalimat
+1. Lakukan analisis git diff
+2. Dari analisa pada nomor 1 di atas Sederhanakan menjadi hanya satu baris kalimat
 
 **PENTING:** Hanya membuat kalimat saja. Jangan menjalankan git commit. Biar saya saja yang melakukan commitnya. Tidak perlu memberi emoticon.

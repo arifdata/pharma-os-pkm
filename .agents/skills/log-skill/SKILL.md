@@ -18,7 +18,7 @@ metadata:
 
 ## How I do it
 
-1. Read `progress.txt` untuk melihat log terakhir
+1. Lakukan analisis git diff
 2. Append entry baru di bagian bawah file
 3. Grup berdasarkan tanggal, gunakan bullet points
 4. Format: aksi (`Modified`, `Created`, `Fixed`, `Deleted`) + nama file + deskripsi
