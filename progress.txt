@@ -1,0 +1,6 @@
+
+## 2026-05-24
+
+### Halaman Login
+- Created `frontend/src/routes/login/+page.svelte` - Halaman login dengan form email, password, dan tombol submit
+- Modified `frontend/src/routes/login/+page.svelte` - Hapus tombol "Lupa password?" dan "Daftar"
