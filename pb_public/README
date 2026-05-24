@@ -1,0 +1,4 @@
+1. cd ke 'frontend' folder
+2. build menggunakan command: bun run build
+3. tempatkan isi folder build/ ke sini
+4. selesai
