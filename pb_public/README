@@ -1,4 +1,6 @@
-1. cd ke 'frontend' folder
+## Frontend Svelte
+
+1. cd ke 'frontend-svelte' folder
 2. build menggunakan command: bun run build
-3. tempatkan isi folder build/ ke sini
+3. tempatkan isi folder dist/ ke sini
 4. selesai
