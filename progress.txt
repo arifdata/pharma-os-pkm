@@ -1,0 +1,9 @@
+
+## 2026-05-25
+
+### Perbaikan Error App.svelte & Setup Layout
+- Modified `frontend-svelte/src/App.svelte` - Mengganti template default Vite dengan layout sidebar menggunakan komponen shadcn-svelte Sidebar, Breadcrumb, dan Separator
+- Created `frontend-svelte/src/lib/components/app-sidebar.svelte` - Komponen navigasi sidebar baru dengan menu dashboard menggunakan ikon phosphor
+- Created `frontend-svelte/src/lib/components/ui/breadcrumb/*` - Menginstall komponen breadcrumb dari shadcn-svelte beserta subkomponennya untuk memperbaiki error import yang hilang
+- Modified `frontend-svelte/package.json` - Menambahkan dependensi `svelte-spa-router` untuk routing SPA
+- Modified `frontend-svelte/bun.lock` - Memperbarui lockfile untuk dependensi baru

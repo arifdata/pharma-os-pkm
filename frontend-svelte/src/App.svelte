@@ -1,159 +1,40 @@
-<script>
-	import './app.css';
-	import svelteLogo from './assets/svelte.svg';
-	import viteLogo from './assets/vite.svg';
-	import heroImg from './assets/hero.png';
-	import Counter from './lib/Counter.svelte';
+<script lang="ts">
+  import AppSidebar from "$lib/components/app-sidebar.svelte";
+  import * as Breadcrumb from "$lib/components/ui/breadcrumb/index.js";
+  import { Separator } from "$lib/components/ui/separator/index.js";
+  import * as Sidebar from "$lib/components/ui/sidebar/index.js";
 </script>
 
-<section id="center">
-	<div class="hero">
-		<img
-			src={heroImg}
-			class="base"
-			width="170"
-			height="179"
-			alt=""
-		/>
+<Sidebar.Provider>
+  <AppSidebar />
+  <Sidebar.Inset>
+    <header
+      class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12"
+    >
+      <div class="flex items-center gap-2 px-4">
+        <Sidebar.Trigger class="-ms-1" />
+        <Separator orientation="vertical" class="me-2 data-[orientation=vertical]:h-4" />
+        <Breadcrumb.Root>
+          <Breadcrumb.List>
+            <Breadcrumb.Item class="hidden md:block">
+              <Breadcrumb.Link href="##">Build Your Application</Breadcrumb.Link>
+            </Breadcrumb.Item>
+            <Breadcrumb.Separator class="hidden md:block" />
+            <Breadcrumb.Item>
+              <Breadcrumb.Page>Data Fetching</Breadcrumb.Page>
+            </Breadcrumb.Item>
+          </Breadcrumb.List>
+        </Breadcrumb.Root>
+      </div>
+    </header>
+    <div class="flex flex-1 flex-col gap-4 p-4 pt-0">
+      <div class="grid auto-rows-min gap-4 md:grid-cols-3">
+        <div class="bg-muted/50 aspect-video rounded-xl"></div>
+        <div class="bg-muted/50 aspect-video rounded-xl"></div>
+        <div class="bg-muted/50 aspect-video rounded-xl"></div>
+      </div>
+      <div class="bg-muted/50 min-h-screen flex-1 rounded-xl md:min-h-min"></div>
+    </div>
+  </Sidebar.Inset>
+</Sidebar.Provider>
 
-		<img
-			src={svelteLogo}
-			class="framework"
-			alt="Svelte logo"
-		/>
-
-		<img src={viteLogo} class="vite" alt="Vite logo" />
-	</div>
-
-	<div>
-		<h1>Get started</h1>
-
-		<p>
-			Edit 
-			<code>src/App.svelte</code>
-			and save to test 
-			<code>HMR</code>
-		</p>
-	</div>
-
-	<Counter />
-</section>
-
-<div class="ticks"></div>
-
-<section id="next-steps">
-	<div id="docs">
-		<svg
-			class="icon"
-			role="presentation"
-			aria-hidden="true"
-		><use href="/icons.svg#documentation-icon"></use></svg>
-
-		<h2>Documentation</h2>
-		<p>Your questions, answered</p>
-
-		<ul>
-			<li>
-				<a
-					href="https://vite.dev/"
-					target="_blank"
-					rel="noreferrer"
-				>
-					<img class="logo" src={viteLogo} alt="" />
-					Explore Vite
-				</a>
-			</li>
-
-			<li>
-				<a
-					href="https://svelte.dev/"
-					target="_blank"
-					rel="noreferrer"
-				>
-					<img class="button-icon" src={svelteLogo} alt="" />
-					Learn more
-				</a>
-			</li>
-		</ul>
-	</div>
-
-	<div id="social">
-		<svg
-			class="icon"
-			role="presentation"
-			aria-hidden="true"
-		><use href="/icons.svg#social-icon"></use></svg>
-
-		<h2>Connect with us</h2>
-		<p>Join the Vite community</p>
-
-		<ul>
-			<li>
-				<a
-					href="https://github.com/vitejs/vite"
-					target="_blank"
-					rel="noreferrer"
-				>
-					<svg
-						class="button-icon"
-						role="presentation"
-						aria-hidden="true"
-					><use href="/icons.svg#github-icon"></use></svg>
-
-					GitHub
-				</a>
-			</li>
-
-			<li>
-				<a
-					href="https://chat.vite.dev/"
-					target="_blank"
-					rel="noreferrer"
-				>
-					<svg
-						class="button-icon"
-						role="presentation"
-						aria-hidden="true"
-					><use href="/icons.svg#discord-icon"></use></svg>
-
-					Discord
-				</a>
-			</li>
-
-			<li>
-				<a
-					href="https://x.com/vite_js"
-					target="_blank"
-					rel="noreferrer"
-				>
-					<svg
-						class="button-icon"
-						role="presentation"
-						aria-hidden="true"
-					><use href="/icons.svg#x-icon"></use></svg>
-
-					X.com
-				</a>
-			</li>
-
-			<li>
-				<a
-					href="https://bsky.app/profile/vite.dev"
-					target="_blank"
-					rel="noreferrer"
-				>
-					<svg
-						class="button-icon"
-						role="presentation"
-						aria-hidden="true"
-					><use href="/icons.svg#bluesky-icon"></use></svg>
-
-					Bluesky
-				</a>
-			</li>
-		</ul>
-	</div>
-</section>
-
-<div class="ticks"></div>
-<section id="spacer"></section>
