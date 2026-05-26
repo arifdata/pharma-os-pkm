@@ -1,40 +1,61 @@
-<script lang="ts">
-  import AppSidebar from "$lib/components/app-sidebar.svelte";
-  import * as Breadcrumb from "$lib/components/ui/breadcrumb/index.js";
-  import { Separator } from "$lib/components/ui/separator/index.js";
-  import * as Sidebar from "$lib/components/ui/sidebar/index.js";
+<script>
+  import "carbon-components-svelte/css/all.css";
+
+  let theme = "g90"; // "white" | "g10" | "g80" | "g90" | "g100"
+  $: document.documentElement.setAttribute("theme", theme);
+
+  import {
+    Column,
+    Content,
+    Grid,
+    Header,
+    HeaderUtilities,
+    HeaderGlobalAction,
+    Row,
+    SideNav,
+    SideNavDivider,
+    SideNavItems,
+    SideNavLink,
+    SideNavMenu,
+    SideNavMenuItem,
+    SkipToContent,
+  } from "carbon-components-svelte";
+  import { Contrast } from "carbon-icons-svelte";
+
+  let isSideNavOpen = false;
 </script>
 
-<Sidebar.Provider>
-  <AppSidebar />
-  <Sidebar.Inset>
-    <header
-      class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12"
-    >
-      <div class="flex items-center gap-2 px-4">
-        <Sidebar.Trigger class="-ms-1" />
-        <Separator orientation="vertical" class="me-2 data-[orientation=vertical]:h-4" />
-        <Breadcrumb.Root>
-          <Breadcrumb.List>
-            <Breadcrumb.Item class="hidden md:block">
-              <Breadcrumb.Link href="##">Build Your Application</Breadcrumb.Link>
-            </Breadcrumb.Item>
-            <Breadcrumb.Separator class="hidden md:block" />
-            <Breadcrumb.Item>
-              <Breadcrumb.Page>Data Fetching</Breadcrumb.Page>
-            </Breadcrumb.Item>
-          </Breadcrumb.List>
-        </Breadcrumb.Root>
-      </div>
-    </header>
-    <div class="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-        <div class="bg-muted/50 aspect-video rounded-xl"></div>
-        <div class="bg-muted/50 aspect-video rounded-xl"></div>
-        <div class="bg-muted/50 aspect-video rounded-xl"></div>
-      </div>
-      <div class="bg-muted/50 min-h-screen flex-1 rounded-xl md:min-h-min"></div>
-    </div>
-  </Sidebar.Inset>
-</Sidebar.Provider>
+<Header companyName="PharmaOS" platformName="PKM" bind:isSideNavOpen>
+  <svelte:fragment slot="skipToContent"><SkipToContent /></svelte:fragment>
+  <HeaderUtilities>
+    <HeaderGlobalAction
+      iconDescription="Switch Theme"
+      tooltipAlignment="end"
+      icon={Contrast}
+      on:click={() => {theme = theme === "g90" ? "g10" : "g90";}}
+    />
+  </HeaderUtilities>
+</Header>
 
+<SideNav bind:isOpen={isSideNavOpen}>
+  <SideNavItems>
+    <SideNavLink text="Link 1" />
+    <SideNavLink text="Link 2" />
+    <SideNavMenu text="Menu">
+      <SideNavMenuItem href="/" text="Link 1" />
+      <SideNavMenuItem href="/" text="Link 2" />
+    </SideNavMenu>
+    <SideNavDivider />
+    <SideNavLink text="Link 4" />
+  </SideNavItems>
+</SideNav>
+
+<Content>
+  <Grid>
+    <Row>
+      <Column>
+        <h3>Home</h3>
+      </Column>
+    </Row>
+  </Grid>
+</Content>
