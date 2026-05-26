@@ -4,8 +4,10 @@
   let theme = "g90"; // "white" | "g10" | "g80" | "g90" | "g100"
   $: document.documentElement.setAttribute("theme", theme);
 
+  import Router from "svelte-spa-router";
+  import routes from "./routes";
+
   import {
-    Column,
     Content,
     Grid,
     Header,
@@ -53,9 +55,7 @@
 <Content>
   <Grid>
     <Row>
-      <Column>
-        <h3>Home</h3>
-      </Column>
+      <Router {routes} />
     </Row>
   </Grid>
 </Content>
