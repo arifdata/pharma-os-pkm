@@ -2,30 +2,33 @@
 
 ## Stack
 
-- **Frontend**: Svelte 5 (runes mode) + Vite + Tailwind CSS v4 + shadcn-svelte (lyra style, phosphor icons)
-- **Backend**: PocketBase 0.38.2 (single binary, gitignored)
+- **Frontend**: Svelte 5 (runes mode) + Vite 8 + Carbon Components Svelte + Carbon Icons Svelte
+- **Backend**: PocketBase 0.38.2 (binary tunggal, gitignored)
+- **Router**: `svelte-spa-router` (terinstal, belum dipasang)
 - **Package manager**: `bun`
 
-## Commands (run in `frontend-svelte/`)
+## Perintah (jalankan di `frontend-svelte/`)
 
-| Command | Purpose |
-|---------|---------|
+| Perintah | Kegunaan |
+|----------|----------|
 | `bun run dev` | Dev server (Vite) |
-| `bun run build` | Build to `frontend-svelte/dist/` |
+| `bun run build` | Build ke `frontend-svelte/dist/` |
 | `bun run check` | Typecheck (`svelte-check` + `tsc`) |
 
-No test, lint, or CI scripts exist.
+Tidak ada skrip test, lint, atau CI.
 
-## Deploy flow
+## Arsitektur
 
-1. `bun run build` (inside `frontend-svelte/`)
-2. Copy `frontend-svelte/dist/*` → `pb_public/`
-3. Run `./pocketbase serve` at repo root
+- SPA murni — PocketBase serving `pb_public/` via `$apis.static()` di `pb_hooks/main.pb.js`
+- Jalankan migrasi dengan `./pocketbase migrate` (koleksi didefinisikan di `pb_migrations/`)
+- Binary `pocketbase` gitignored; unduh v0.38.2 dari rilis PocketBase jika belum ada
+- Tidak ada `.env` — PocketBase menggunakan konfigurasi default, frontend tanpa variabel env
+- `pb_data/` gitignored — berisi database SQLite dan file upload
+- Tidak ada path alias `$lib` di tsconfig; gunakan relative imports
+- Tema Carbon dikendalikan oleh atribut `theme` di `<html>` (`g10`=terang, `g90`=gelap)
 
-## Architecture quirks
+## Deploy
 
-- Pure SPA (no router library yet) — PocketBase serves `pb_public/` via `$apis.static()` in `pb_hooks/main.pb.js`
-- Run migrations with `./pocketbase migrate` (collections defined in `pb_migrations/`)
-- `pocketbase` binary is gitignored; download v0.38.2 from PocketBase releases if missing
-- No `.env` — PocketBase uses default configuration, frontend has no env variables
-- `pb_data/` is gitignored — contains the SQLite database and uploads
+1. `cd frontend-svelte && bun run build`
+2. `cp -r frontend-svelte/dist/* pb_public/`
+3. `./pocketbase serve` (di root repo)
