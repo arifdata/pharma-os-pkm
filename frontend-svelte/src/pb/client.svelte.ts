@@ -18,9 +18,13 @@ pb.authStore.onChange(() => {
 
 export async function login(email: string, password: string) {
   const authData = await pb.collection("_superusers").authWithPassword(email, password);
+  _authState.isLoggedIn = true;
+  _authState.user = authData.record;
   return authData;
 }
 
 export async function logout() {
   pb.authStore.clear();
+  _authState.isLoggedIn = false;
+  _authState.user = null;
 }
