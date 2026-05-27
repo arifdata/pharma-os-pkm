@@ -9,11 +9,9 @@
 
   import {
     Content,
-    Grid,
     Header,
     HeaderUtilities,
     HeaderGlobalAction,
-    Row,
     SideNav,
     SideNavDivider,
     SideNavItems,
@@ -46,16 +44,11 @@
       <SideNavMenuItem href="#/masterbmhp" text="Master BMHP" />
       <SideNavMenuItem href="/" text="Link 2" />
     </SideNavMenu>
-    <SideNavLink text="Other" href="#/other"/>
     <SideNavDivider />
-    <SideNavLink text="Link 4" />
+    <SideNavLink text="Testing Page" href="#/testing"/>
   </SideNavItems>
 </SideNav>
 
 <Content>
-  <Grid>
-    <Row>
-      <Router {routes} />
-    </Row>
-  </Grid>
+  <Router {routes} />
 </Content>

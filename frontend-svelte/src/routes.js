@@ -1,6 +1,6 @@
 // Route Dashboard
 import DashboardPage from './routes/DashboardPage.svelte'
-import OtherPage from './routes/OtherPage.svelte'
+import TestingPage from './routes/TestingPage.svelte'
 import MasterBMHPPage from './routes/farmasi/MasterBMHPPage.svelte'
 
 // Route Pendaftaran
@@ -21,7 +21,7 @@ import MasterBMHPPage from './routes/farmasi/MasterBMHPPage.svelte'
 export default {
     // Exact path
     '/': DashboardPage,
-    '/other': OtherPage,
+    '/testing': TestingPage,
 
     '/masterbmhp': MasterBMHPPage,
 
