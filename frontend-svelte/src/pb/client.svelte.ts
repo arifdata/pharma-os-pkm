@@ -17,10 +17,10 @@ pb.authStore.onChange(() => {
 });
 
 export async function login(email: string, password: string) {
-  const authData = await pb.collection("users").authWithPassword(email, password);
+  const authData = await pb.collection("_superusers").authWithPassword(email, password);
   return authData;
 }
 
-export function logout() {
+export async function logout() {
   pb.authStore.clear();
 }

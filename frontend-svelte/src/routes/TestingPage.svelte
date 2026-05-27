@@ -1,8 +1,7 @@
 
 <script>
   import { Column } from "carbon-components-svelte";
-  import { getAuthState, login, logout } from "../pb/client.svelte";
-  
+  import { getAuthState } from "../pb/client.svelte";
   let auth = getAuthState();
 
 </script>

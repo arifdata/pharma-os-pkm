@@ -3,10 +3,12 @@
   import { Table, Settings } from "carbon-icons-svelte";
 
   import TabelMasterBMHP from "./master_bmhp/TabelMasterBMHP.svelte";
+
+  import { getAuthState } from "../../pb/client.svelte";
+  let auth = getAuthState();
 </script>
 
-<!-- <h4>Master BMHP</h4> -->
-
+{#if auth.isLoggedIn}
 <Tabs fullWidth selected={0}>
   <Tab label="Master BMHP" icon={Table}/>
   <Tab label="Setting Variable" icon={Settings}/>
@@ -17,4 +19,9 @@
     <TabContent>Content 2</TabContent>
   </svelte:fragment>
 </Tabs>
+
+
+{:else}
+Belum login
+{/if}
 
