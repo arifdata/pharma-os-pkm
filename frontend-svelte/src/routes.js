@@ -1,6 +1,7 @@
 // Route Dashboard
 import DashboardPage from './routes/DashboardPage.svelte'
 import OtherPage from './routes/OtherPage.svelte'
+import MasterBMHPPage from './routes/farmasi/MasterBMHPPage.svelte'
 
 // Route Pendaftaran
 // import DataPasienPage from './routes/pendaftaran/DataPasienPage.svelte'
@@ -21,6 +22,8 @@ export default {
     // Exact path
     '/': DashboardPage,
     '/other': OtherPage,
+
+    '/masterbmhp': MasterBMHPPage,
 
     // '/data_pasien': DataPasienPage,
     // '/data_pasien/detail/:id': PasienDetailPage,

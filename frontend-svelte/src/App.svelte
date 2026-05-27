@@ -22,12 +22,12 @@
     SideNavMenuItem,
     SkipToContent,
   } from "carbon-components-svelte";
-  import { Contrast } from "carbon-icons-svelte";
+  import { Home, Contrast, Medication, Table } from "carbon-icons-svelte";
 
   let isSideNavOpen = false;
 </script>
 
-<Header companyName="PharmaOS" platformName="PKM" bind:isSideNavOpen>
+<Header companyName="PharmaOS" platformName="PKM" href="#/" bind:isSideNavOpen>
   <svelte:fragment slot="skipToContent"><SkipToContent /></svelte:fragment>
   <HeaderUtilities>
     <HeaderGlobalAction
@@ -41,12 +41,12 @@
 
 <SideNav bind:isOpen={isSideNavOpen}>
   <SideNavItems>
-    <SideNavLink text="Link 1" />
-    <SideNavLink text="Link 2" />
-    <SideNavMenu text="Menu">
-      <SideNavMenuItem href="/" text="Link 1" />
+    <SideNavLink text="Home" href="#/" icon={Home} />
+    <SideNavMenu text="Farmasi" expanded={true} icon={Medication}>
+      <SideNavMenuItem href="#/masterbmhp" text="Master BMHP" />
       <SideNavMenuItem href="/" text="Link 2" />
     </SideNavMenu>
+    <SideNavLink text="Other" href="#/other"/>
     <SideNavDivider />
     <SideNavLink text="Link 4" />
   </SideNavItems>
