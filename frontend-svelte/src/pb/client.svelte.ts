@@ -28,3 +28,17 @@ export async function logout() {
   _authState.isLoggedIn = false;
   _authState.user = null;
 }
+
+export async function add(item: string, tags: string) {
+  const records = await pb.collection('master_bmhp_tags').getFullList().then((v) => console.log(v));
+  // console.log(records);
+
+  var arr_tags = tags.split(",")
+  const body = {
+    "nama_bmhp": item,
+    "tags": ["mantap"]
+  }
+
+  // const record = await pb.collection('master_bmhp').create(body);
+  // console.log(item, arr_tags);
+}
