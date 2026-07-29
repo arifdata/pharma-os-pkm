@@ -4,7 +4,7 @@
 
   import TabelMasterBMHP from "./master_bmhp/TabelMasterBMHP.svelte";
 
-  import { getAuthState, add } from "../../pb/client.svelte";
+  import { getAuthState, addBMHP } from "../../pb/client.svelte";
   let auth = getAuthState();
   let openModal = $state(false);
   let inputBMHP = $state("");
@@ -31,13 +31,13 @@
         secondaryButtonText="Cancel"
         on:click:button--primary={async() => {
 
-            let x = await add(inputBMHP, inputBMHPTags);
-            console.log(x);
+            let resp = await addBMHP(inputBMHP, inputBMHPTags);
             openModal = false;
             clearFields();
             notif.add({
-              "kind": "warning",
-              "title": x,
+              "kind": "success",
+              "title": "Menambah Master BMHP",
+              "subtitle": resp, 
               "timeout": 3000,
             });
           }

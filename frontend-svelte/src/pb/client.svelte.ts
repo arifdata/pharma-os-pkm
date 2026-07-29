@@ -29,26 +29,45 @@ export async function logout() {
   _authState.user = null;
 }
 
-export async function add(item: string, input_tags: string): any {
+export async function addBMHP(item: string, input_tags: string): any {
+  //return early if the fields are empty
   if (item == "" || input_tags == "") {
     return "Isian tidak boleh kosong"
   }
+
+  //get all master_bmhp_tags
   const current_tags = await pb.collection('master_bmhp_tags').getFullList();
+
+  //empty object
   let map_tags = {};
 
+  //empty relasi
+  let relasi = [];
+
+  //fill map_tags with pair key value tag and their id
   for (const tag of current_tags) {
     map_tags[tag['tag']] = tag['id'];
   }
 
+  // split the input tags, if tag not in object create new in collection and then update the map_tags object
   const arr_input_tags = input_tags.split(",");
+  for (const input_tag of arr_input_tags) {
+    if (!Object.hasOwn(map_tags, input_tag)) {
+      const body = {
+        "tag": input_tag
+      };
+      const record = await pb.collection('master_bmhp_tags').create(body);
+      map_tags[input_tag] = record['id'];
+    }
+    
+    relasi.push(map_tags[input_tag]);
+  }
 
-  // const body = {
-  //   "nama_bmhp": item,
-  //   "tags": ["mantap"]
-  // }
+  const body = {
+    "nama_bmhp": item,
+    "relasi": relasi
+  };
 
-  // return 0
-
-  // const record = await pb.collection('master_bmhp').create(body);
-  // console.log(item, arr_tags);
+  const record = await pb.collection('master_bmhp').create(body);
+  return `Menambahkan ${record['nama_bmhp']}`
 }
