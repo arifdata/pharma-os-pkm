@@ -29,15 +29,25 @@ export async function logout() {
   _authState.user = null;
 }
 
-export async function add(item: string, tags: string) {
-  const records = await pb.collection('master_bmhp_tags').getFullList().then((v) => console.log(v));
-  // console.log(records);
-
-  var arr_tags = tags.split(",")
-  const body = {
-    "nama_bmhp": item,
-    "tags": ["mantap"]
+export async function add(item: string, input_tags: string): any {
+  if (item == "" || input_tags == "") {
+    return "Isian tidak boleh kosong"
   }
+  const current_tags = await pb.collection('master_bmhp_tags').getFullList();
+  let map_tags = {};
+
+  for (const tag of current_tags) {
+    map_tags[tag['tag']] = tag['id'];
+  }
+
+  const arr_input_tags = input_tags.split(",");
+
+  // const body = {
+  //   "nama_bmhp": item,
+  //   "tags": ["mantap"]
+  // }
+
+  // return 0
 
   // const record = await pb.collection('master_bmhp').create(body);
   // console.log(item, arr_tags);
