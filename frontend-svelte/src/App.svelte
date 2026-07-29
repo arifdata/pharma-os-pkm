@@ -29,13 +29,13 @@
 
   let isSideNavOpen = $state(false);
   import { getAuthState, login, logout } from "./pb/client.svelte";
+  import { notif } from "./lib/notif.svelte";
   let auth = $state(getAuthState());
 
   let email = localStorage.getItem("isianEmail") ?? "";
   let password = localStorage.getItem("isianPass") ?? "";
 
   let openModal = $state(false);
-  let queue;
 
 
 </script>
@@ -52,7 +52,7 @@
         icon={Logout}
         on:click={() => {
           logout();
-          queue.add({
+          notif.add({
             kind: "warning",
             title: "Logout dari sistem",
             timeout: 3000,
@@ -76,7 +76,7 @@
   </HeaderUtilities>
 </Header>
 
-<NotificationQueue bind:this={queue} position="bottom-right" />
+<NotificationQueue bind:this={notif.ref} position="bottom-right" />
 
 <SideNav bind:isOpen={isSideNavOpen}>
   <SideNavItems>
@@ -104,11 +104,11 @@
   on:click:button--primary={() => {
     localStorage.setItem("isianEmail", email);
     localStorage.setItem("isianPass", password);
-    login(email, password).then(val => queue.add({
+    login(email, password).then(val => notif.add({
       kind: "success",
       title: "Berhasil Login",
       timeout: 3000,
-    })).catch(err => queue.add({
+    })).catch(err => notif.add({
       kind: "error",
       title: "Gagal Login",
       subtitle: "Harus menggunakan akun superuser.",

@@ -3,7 +3,7 @@
 ## Stack
 
 - **Frontend**: Svelte 5 (runes mode) + Vite 8 + Carbon Components Svelte + Carbon Icons Svelte
-- **Backend**: PocketBase 0.38.2 (binary tunggal, gitignored)
+- **Backend**: PocketBase 0.39.9 (binary tunggal, gitignored)
 - **Router**: `svelte-spa-router` (terinstal, belum dipasang)
 - **Package manager**: `bun`
 
@@ -21,7 +21,7 @@ Tidak ada skrip test, lint, atau CI.
 
 - SPA murni — PocketBase serving `pb_public/` via `$apis.static()` di `pb_hooks/main.pb.js`
 - Jalankan migrasi dengan `./pocketbase migrate` (koleksi didefinisikan di `pb_migrations/`)
-- Binary `pocketbase` gitignored; unduh v0.38.2 dari rilis PocketBase jika belum ada
+- Binary `pocketbase` gitignored; unduh v0.39.9 dari rilis PocketBase jika belum ada
 - Tidak ada `.env` — PocketBase menggunakan konfigurasi default, frontend tanpa variabel env
 - `pb_data/` gitignored — berisi database SQLite dan file upload
 - Tidak ada path alias `$lib` di tsconfig; gunakan relative imports

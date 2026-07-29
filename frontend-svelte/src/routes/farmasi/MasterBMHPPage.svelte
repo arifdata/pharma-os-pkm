@@ -1,15 +1,15 @@
 <script>
-  import { Tabs, Tab, TabContent, Column, Button, Modal, TextInput, NotificationQueue } from "carbon-components-svelte";
+  import { Tabs, Tab, TabContent, Column, Button, Modal, TextInput } from "carbon-components-svelte";
   import { Table, Settings } from "carbon-icons-svelte";
 
   import TabelMasterBMHP from "./master_bmhp/TabelMasterBMHP.svelte";
 
   import { getAuthState, addBMHP } from "../../pb/client.svelte";
+  import { notif } from "../../lib/notif.svelte";
   let auth = getAuthState();
   let openModal = $state(false);
   let inputBMHP = $state("");
   let inputBMHPTags = $state("");
-  let notif;
 
   function clearFields() {
     inputBMHP = "";
@@ -58,8 +58,6 @@
     </TabContent>
   </svelte:fragment>
 </Tabs>
-
-<NotificationQueue bind:this={notif} position="bottom-right" />
 
 {:else}
 Belum login

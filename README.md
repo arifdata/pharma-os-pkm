@@ -7,14 +7,14 @@ Sistem manajemen inventaris obat dan BMHP (Bahan Medis Habis Pakai) untuk Puskes
 | Layer | Teknologi |
 |-------|-----------|
 | **Frontend** | Svelte 5 (runes) + Vite 8 + Carbon Components Svelte + Carbon Icons Svelte |
-| **Backend** | PocketBase 0.38.2 (single binary, SQLite) |
+| **Backend** | PocketBase 0.39.9 (single binary, SQLite) |
 | **Router** | `svelte-spa-router` |
 | **Package Manager** | `bun` |
 
 ## Prerequisites
 
 - [bun](https://bun.sh) >= 1.2
-- [PocketBase](https://github.com/pocketbase/pocketbase/releases/tag/v0.38.2) v0.38.2 binary di root project (gitignored)
+- [PocketBase](https://github.com/pocketbase/pocketbase/releases/tag/v0.38.2) v0.39.9 binary di root project (gitignored)
 
 ## Backend Setup 
 
@@ -23,7 +23,7 @@ Sistem manajemen inventaris obat dan BMHP (Bahan Medis Habis Pakai) untuk Puskes
 cd frontend-svelte
 bun install
 
-# 2. Download PocketBase v0.38.2
+# 2. Download PocketBase v0.39.9
 #    Letakkan binary `pocketbase` di root project
 
 # 3. Jalankan migrasi database
