@@ -35,9 +35,8 @@
             openModal = false;
             clearFields();
             notif.add({
-              "kind": "success",
-              "title": "Menambah Master BMHP",
-              "subtitle": resp, 
+              "kind": resp.ok ? "success" : "error",
+              "subtitle": resp.msg, 
               "timeout": 3000,
             });
           }

@@ -29,10 +29,10 @@ export async function logout() {
   _authState.user = null;
 }
 
-export async function addBMHP(item: string, input_tags: string): Promise<string> {
+export async function addBMHP(item: string, input_tags: string): Promise<{ok: boolean, msg: string}> {
   //return early if the fields are empty
   if (item == "" || input_tags == "") {
-    return "Isian tidak boleh kosong"
+    return {ok: false, msg: "Isian tidak boleh kosong"}
   }
 
   //get all master_bmhp_tags
@@ -42,7 +42,7 @@ export async function addBMHP(item: string, input_tags: string): Promise<string>
   let map_tags: Record<string, string> = {};
 
   //empty relasi
-  let relasi = [];
+  let relasi_tags = [];
 
   //fill map_tags with pair key value tag and their id
   for (const tag of current_tags) {
@@ -60,14 +60,14 @@ export async function addBMHP(item: string, input_tags: string): Promise<string>
       map_tags[input_tag] = record['id'];
     }
     
-    relasi.push(map_tags[input_tag]);
+    relasi_tags.push(map_tags[input_tag]);
   }
 
   const body = {
     "nama_bmhp": item,
-    "relasi": relasi
+    "tags": relasi_tags
   };
 
   const record = await pb.collection('master_bmhp').create(body);
-  return `Menambahkan ${record['nama_bmhp']}`
+  return {ok: true, msg: `Menambahkan ${record['nama_bmhp']}`}
 }
