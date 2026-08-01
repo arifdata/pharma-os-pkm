@@ -1,7 +1,8 @@
 <script>
   import "carbon-components-svelte/css/all.css";
 
-  let theme = $state("g90"); // "white" | "g10" | "g80" | "g90" | "g100"
+  const themes = ["white", "g10", "g80", "g90", "g100"];
+  let theme = $state("g90");
   $effect(() => { document.documentElement.setAttribute("theme", theme); });
 
   import Router from "svelte-spa-router";
@@ -71,7 +72,7 @@
       iconDescription="Switch Theme"
       tooltipAlignment="end"
       icon={Contrast}
-      on:click={() => {theme = theme === "g90" ? "g10" : "g90";}}
+      on:click={() => { theme = themes[(themes.indexOf(theme) + 1) % themes.length]; }}
     />
   </HeaderUtilities>
 </Header>
