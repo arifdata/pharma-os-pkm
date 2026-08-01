@@ -1,5 +1,5 @@
 // Route Dashboard
-import DashboardPage from './routes/DashboardPage.svelte'
+import HomePage from './routes/HomePage.svelte'
 import TestingPage from './routes/TestingPage.svelte'
 import MasterBMHPPage from './routes/farmasi/MasterBMHPPage.svelte'
 
@@ -20,7 +20,7 @@ import MasterBMHPPage from './routes/farmasi/MasterBMHPPage.svelte'
 // Export the route definition object
 export default {
     // Exact path
-    '/': DashboardPage,
+    '/': HomePage,
     '/testing': TestingPage,
 
     '/masterbmhp': MasterBMHPPage,

@@ -32,8 +32,8 @@
   import { notif } from "./lib/notif.svelte";
   let auth = $state(getAuthState());
 
-  let email = localStorage.getItem("isianEmail") ?? "";
-  let password = localStorage.getItem("isianPass") ?? "";
+  let email = $state(localStorage.getItem("isianEmail") ?? "");
+  let password = $state(localStorage.getItem("isianPass") ?? "");
 
   let openModal = $state(false);
 
@@ -88,7 +88,7 @@
     <SideNavDivider />
     <SideNavLink text="Testing Page" href="#/testing"/>
     {:else}
-    <SideNavLink text="Menu Terkunci" icon={LockedAndBlocked} />
+    <SideNavLink text="Menu Dikunci" on:click={openModal = true} icon={LockedAndBlocked} />
     {/if}
   </SideNavItems>
 </SideNav>
