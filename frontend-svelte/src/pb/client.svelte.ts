@@ -29,7 +29,7 @@ export async function logout() {
   _authState.user = null;
 }
 
-export async function addBMHP(item: string, input_tags: string): any {
+export async function addBMHP(item: string, input_tags: string): Promise<string> {
   //return early if the fields are empty
   if (item == "" || input_tags == "") {
     return "Isian tidak boleh kosong"
@@ -39,7 +39,7 @@ export async function addBMHP(item: string, input_tags: string): any {
   const current_tags = await pb.collection('master_bmhp_tags').getFullList();
 
   //empty object
-  let map_tags = {};
+  let map_tags: Record<string, string> = {};
 
   //empty relasi
   let relasi = [];
