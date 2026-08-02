@@ -4,19 +4,25 @@
     Button,
     DataTable,
     DataTableSkeleton,
+    Modal,
+    TextInput,
     Toolbar,
     ToolbarContent,
     ToolbarSearch,
   } from "carbon-components-svelte";
   import { Renew, Add } from "carbon-icons-svelte";
 
-  import { pb } from "../../../pb/client.svelte";
+  import { pb, addBMHP } from "../../../pb/client.svelte";
+  import { notif } from "../../../lib/notif.svelte";
 
   let allRows = $state([]);
   let loading = $state(true);
   let error = $state(null);
   let searchTerm = $state("");
   let reloading = $state(false);
+  let openModal = $state(false);
+  let inputBMHP = $state("");
+  let inputBMHPTags = $state("");
 
   const headers = [
     { key: "nama_bmhp", value: "Nama BMHP" },
@@ -58,6 +64,23 @@
     reloading = false;
   }
 
+  function clearFields() {
+    inputBMHP = "";
+    inputBMHPTags = "";
+  }
+
+  async function submitBMHP() {
+    let resp = await addBMHP(inputBMHP, inputBMHPTags);
+    openModal = false;
+    clearFields();
+    notif.add({
+      kind: resp.ok ? "success" : "error",
+      subtitle: resp.msg,
+      timeout: 3000,
+    });
+    if (resp.ok) await reload();
+  }
+
   onMount(() => loadData().finally(() => (loading = false)));
 </script>
 
@@ -84,13 +107,24 @@
           icon={Renew}
           disabled={reloading}
           on:click={reload}
+          tooltip="Muat ulang data"
         >
           {reloading ? "Memuat..." : "Reload"}
         </Button>
-        <Button icon={Add}>Tambah</Button>
+        <Button icon={Add} onclick={() => (openModal = true)}>Tambah</Button>
       </ToolbarContent>
     </Toolbar>
   </DataTable>
+  <Modal
+    bind:open={openModal}
+    primaryButtonText="Submit"
+    secondaryButtonText="Cancel"
+    on:click:button--primary={submitBMHP}
+    on:click:button--secondary={() => (openModal = false)}
+  >
+    <TextInput bind:value={inputBMHP} labelText="Nama BMHP" placeholder="Masukkan nama BMHP" />
+    <TextInput bind:value={inputBMHPTags} labelText="Tags" placeholder="pisahkan dengan koma ," />
+  </Modal>
 {/if}
 
 <style>
