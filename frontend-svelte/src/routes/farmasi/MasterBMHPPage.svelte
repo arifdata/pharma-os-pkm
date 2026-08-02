@@ -46,9 +46,10 @@
           <TextInput bind:value={inputBMHP} labelText="Nama BMHP" placeholder="Masukkan nama BMHP" />
           <TextInput bind:value={inputBMHPTags} labelText="Tags" placeholder="pisahkan dengan koma ," />
         </Modal>
+        <TabelMasterBMHP />
       </TabContent>
       <TabContent>
-        <!-- <TabelMasterBMHP /> -->
+        <p>Tab 2 content</p>
       </TabContent>
     </svelte:fragment>
   </Tabs>

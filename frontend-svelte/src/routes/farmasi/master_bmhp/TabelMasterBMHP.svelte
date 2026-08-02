@@ -1,80 +1,101 @@
 <script>
+  import { onMount } from "svelte";
   import {
+    Button,
     DataTable,
+    DataTableSkeleton,
     Toolbar,
     ToolbarContent,
     ToolbarSearch,
-    ToolbarMenu,
-    ToolbarMenuItem,
-    Button,
   } from "carbon-components-svelte";
+  import { Renew, Add } from "carbon-icons-svelte";
+
+  import { pb } from "../../../pb/client.svelte";
+
+  let allRows = $state([]);
+  let loading = $state(true);
+  let error = $state(null);
+  let searchTerm = $state("");
+  let reloading = $state(false);
+
+  const headers = [
+    { key: "nama_bmhp", value: "Nama BMHP" },
+    { key: "tags", value: "Tags" },
+  ];
+
+  let rows = $derived(
+    searchTerm.trim() === ""
+      ? allRows
+      : allRows.filter((r) => {
+          const q = searchTerm.toLowerCase();
+          return (
+            r.nama_bmhp.toLowerCase().includes(q) ||
+            r.tags.toLowerCase().includes(q)
+          );
+        })
+  );
+
+  async function loadData() {
+    try {
+      const records = await pb.collection("master_bmhp").getFullList({
+        expand: "tags",
+        sort: "created",
+      });
+      allRows = records.map((r) => ({
+        id: r.id,
+        nama_bmhp: r.nama_bmhp,
+        tags: r.expand?.tags?.map((t) => t.tag).join(", ") ?? "-",
+      }));
+      error = null;
+    } catch (e) {
+      error = e.message ?? "Gagal memuat data";
+    }
+  }
+
+  async function reload() {
+    reloading = true;
+    await loadData();
+    reloading = false;
+  }
+
+  onMount(() => loadData().finally(() => (loading = false)));
 </script>
 
-<DataTable
-  title="Master BMHP"
-  description="Sebagai referensi nama BMHP dan settingnya."
-  headers={[
-    { key: "name", value: "Name" },
-    { key: "protocol", value: "Protocol" },
-    { key: "port", value: "Port" },
-    { key: "rule", value: "Rule" },
-  ]}
-  rows={[
-    {
-      id: "a",
-      name: "Load Balancer 3",
-      protocol: "HTTP",
-      port: 3000,
-      rule: "Round robin",
-    },
-    {
-      id: "b",
-      name: "Load Balancer 1",
-      protocol: "HTTP",
-      port: 443,
-      rule: "Round robin",
-    },
-    {
-      id: "c",
-      name: "Load Balancer 2",
-      protocol: "HTTP",
-      port: 80,
-      rule: "DNS delegation",
-    },
-    {
-      id: "d",
-      name: "Load Balancer 6",
-      protocol: "HTTP",
-      port: 3000,
-      rule: "Round robin",
-    },
-    {
-      id: "e",
-      name: "Load Balancer 4",
-      protocol: "HTTP",
-      port: 443,
-      rule: "Round robin",
-    },
-    {
-      id: "f",
-      name: "Load Balancer 5",
-      protocol: "HTTP",
-      port: 80,
-      rule: "DNS delegation",
-    },
-  ]}
->
-  <Toolbar>
-    <ToolbarContent>
-      <ToolbarSearch />
-      <ToolbarMenu>
-        <ToolbarMenuItem primaryFocus>Restart all</ToolbarMenuItem>
-        <ToolbarMenuItem href="https://cloud.ibm.com/docs/loadbalancer-service">
-          API documentation
-        </ToolbarMenuItem>
-        <ToolbarMenuItem hasDivider danger>Stop all</ToolbarMenuItem>
-      </ToolbarMenu>
-      <Button>Create balancer</Button>
-    </ToolbarContent>
-  </Toolbar>
-</DataTable>
+{#if loading}
+  <DataTableSkeleton columns={2} rows={5} headers={headers} />
+{:else if error}
+  <p class="error">{error}</p>
+{:else}
+  <DataTable
+    title="Master BMHP"
+    size="short"
+    {headers}
+    {rows}
+    pageSize={10}
+    zebra
+  >
+    <Toolbar>
+      <ToolbarContent>
+        <ToolbarSearch
+          bind:value={searchTerm}
+          on:clear={() => (searchTerm = "")}
+        />
+        <Button
+          icon={Renew}
+          disabled={reloading}
+          on:click={reload}
+        >
+          {reloading ? "Memuat..." : "Reload"}
+        </Button>
+        <Button icon={Add}>Tambah</Button>
+      </ToolbarContent>
+    </Toolbar>
+  </DataTable>
+{/if}
+
+<style>
+  .error {
+    color: var(--cds-text-error, #da1e28);
+    padding: 1rem;
+  }
+</style>
