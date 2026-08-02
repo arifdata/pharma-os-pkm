@@ -35,37 +35,37 @@ export async function addBMHP(item: string, input_tags: string): Promise<{ok: bo
     return {ok: false, msg: "Isian tidak boleh kosong"}
   }
 
-  //get all master_bmhp_tags
-  const current_tags = await pb.collection('master_bmhp_tags').getFullList();
+  //get all master_bmhp_labels
+  const current_labels = await pb.collection('master_bmhp_labels').getFullList();
 
   //empty object
-  let map_tags: Record<string, string> = {};
+  let map_labels: Record<string, string> = {};
 
   //empty relasi
-  let relasi_tags = [];
+  let relasi_labels = [];
 
-  //fill map_tags with pair key value tag and their id
-  for (const tag of current_tags) {
-    map_tags[tag['tag']] = tag['id'];
+  //fill map_labels with pair key value label and their id
+  for (const label of current_labels) {
+    map_labels[label['label']] = label['id'];
   }
 
-  // split the input tags, if tag not in object create new in collection and then update the map_tags object
-  const arr_input_tags = input_tags.split(",");
-  for (const input_tag of arr_input_tags) {
-    if (!Object.hasOwn(map_tags, input_tag)) {
+  // split the input labels, if label not in object create new in collection and then update the map_labels object
+  const arr_input_labels = input_tags.split(",");
+  for (const input_label of arr_input_labels) {
+    if (!Object.hasOwn(map_labels, input_label)) {
       const body = {
-        "tag": input_tag
+        "label": input_label
       };
-      const record = await pb.collection('master_bmhp_tags').create(body);
-      map_tags[input_tag] = record['id'];
+      const record = await pb.collection('master_bmhp_labels').create(body);
+      map_labels[input_label] = record['id'];
     }
     
-    relasi_tags.push(map_tags[input_tag]);
+    relasi_labels.push(map_labels[input_label]);
   }
 
   const body = {
     "nama_bmhp": item,
-    "tags": relasi_tags
+    "labels": relasi_labels
   };
 
   const record = await pb.collection('master_bmhp').create(body);

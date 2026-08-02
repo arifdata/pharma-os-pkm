@@ -20,13 +20,14 @@
   let error = $state(null);
   let searchTerm = $state("");
   let reloading = $state(false);
-  let openModal = $state(false);
+  let openAddModal = $state(false);
   let inputBMHP = $state("");
-  let inputBMHPTags = $state("");
+  let inputBMHPLabels = $state("");
 
   const headers = [
     { key: "nama_bmhp", value: "Nama BMHP" },
-    { key: "tags", value: "Tags" },
+    { key: "labels", value: "Labels" },
+    { key: "actions", value: "Actions" },
   ];
 
   let rows = $derived(
@@ -36,7 +37,7 @@
           const q = searchTerm.toLowerCase();
           return (
             r.nama_bmhp.toLowerCase().includes(q) ||
-            r.tags.toLowerCase().includes(q)
+            r.labels.toLowerCase().includes(q)
           );
         })
   );
@@ -44,13 +45,14 @@
   async function loadData() {
     try {
       const records = await pb.collection("master_bmhp").getFullList({
-        expand: "tags",
+        expand: "labels",
         sort: "created",
       });
       allRows = records.map((r) => ({
         id: r.id,
         nama_bmhp: r.nama_bmhp,
-        tags: r.expand?.tags?.map((t) => t.tag).join(", ") ?? "-",
+        labels: r.expand?.labels?.map((l) => l.label).join(", ") ?? "-",
+        actions: r.id
       }));
       error = null;
     } catch (e) {
@@ -66,12 +68,12 @@
 
   function clearFields() {
     inputBMHP = "";
-    inputBMHPTags = "";
+    inputBMHPLabels = "";
   }
 
   async function submitBMHP() {
-    let resp = await addBMHP(inputBMHP, inputBMHPTags);
-    openModal = false;
+    let resp = await addBMHP(inputBMHP, inputBMHPLabels);
+    openAddModal = false;
     clearFields();
     notif.add({
       kind: resp.ok ? "success" : "error",
@@ -111,19 +113,19 @@
         >
           {reloading ? "Memuat..." : "Reload"}
         </Button>
-        <Button icon={Add} onclick={() => (openModal = true)}>Tambah</Button>
+        <Button icon={Add} onclick={() => (openAddModal = true)}>Tambah</Button>
       </ToolbarContent>
     </Toolbar>
   </DataTable>
   <Modal
-    bind:open={openModal}
+    bind:open={openAddModal}
     primaryButtonText="Submit"
     secondaryButtonText="Cancel"
     on:click:button--primary={submitBMHP}
-    on:click:button--secondary={() => (openModal = false)}
+    on:click:button--secondary={() => (openAddModal = false)}
   >
     <TextInput bind:value={inputBMHP} labelText="Nama BMHP" placeholder="Masukkan nama BMHP" />
-    <TextInput bind:value={inputBMHPTags} labelText="Tags" placeholder="pisahkan dengan koma ," />
+    <TextInput bind:value={inputBMHPLabels} labelText="Labels" placeholder="pisahkan dengan koma ," />
   </Modal>
 {/if}
 
