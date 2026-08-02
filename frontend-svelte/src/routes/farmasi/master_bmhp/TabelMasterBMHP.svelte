@@ -12,7 +12,7 @@
   } from "carbon-components-svelte";
   import { Renew, Add, TrashCan, Edit } from "carbon-icons-svelte";
 
-  import { pb, addBMHP } from "../../../pb/client.svelte";
+  import { pb } from "../../../pb/client.svelte";
   import { notif } from "../../../lib/notif.svelte";
 
   /** @type {any[]} */
@@ -75,6 +75,43 @@
   function clearFields() {
     inputBMHP = "";
     inputBMHPLabels = "";
+  }
+
+  /**
+   * @param {string} item
+   * @param {string} input_tags
+   * @returns {Promise<{ok: boolean, msg: string}>}
+   */
+  async function addBMHP(item, input_tags) {
+    if (item == "" || input_tags == "") {
+      return {ok: false, msg: "Isian tidak boleh kosong"}
+    }
+
+    const current_labels = await pb.collection('master_bmhp_labels').getFullList();
+
+    /** @type {Record<string, string>} */
+    let map_labels = {};
+    /** @type {string[]} */
+    let relasi_labels = [];
+
+    for (const label of current_labels) {
+      map_labels[label['label']] = label['id'];
+    }
+
+    const arr_input_labels = input_tags.split(",");
+    for (const input_label of arr_input_labels) {
+      if (!Object.hasOwn(map_labels, input_label)) {
+        const record = await pb.collection('master_bmhp_labels').create({ label: input_label });
+        map_labels[input_label] = record['id'];
+      }
+      relasi_labels.push(map_labels[input_label]);
+    }
+
+    const record = await pb.collection('master_bmhp').create({
+      nama_bmhp: item,
+      labels: relasi_labels,
+    });
+    return {ok: true, msg: `Menambahkan ${record['nama_bmhp']}`}
   }
 
   async function submitBMHP() {
