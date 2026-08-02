@@ -15,9 +15,10 @@
   import { pb, addBMHP } from "../../../pb/client.svelte";
   import { notif } from "../../../lib/notif.svelte";
 
+  /** @type {any[]} */
   let allRows = $state([]);
   let loading = $state(true);
-  let error = $state(null);
+  let error = $state("");
   let searchTerm = $state("");
   let reloading = $state(false);
   let openAddModal = $state(false);
@@ -25,6 +26,10 @@
   let inputBMHPLabels = $state("");
   let openDeleteModal = $state(false);
   let deleteTargetId = $state("");
+  let openEditModal = $state(false);
+  let editTargetId = $state("");
+  let editBMHPName = $state("");
+  let editBMHPLabels = $state("");
 
   const headers = [
     { key: "nama_bmhp", value: "Nama BMHP" },
@@ -53,11 +58,11 @@
       allRows = records.map((r) => ({
         id: r.id,
         nama_bmhp: r.nama_bmhp,
-        labels: r.expand?.labels?.map((l) => l.label).join(",") ?? "-",
+        labels: /** @type {any[]} */ (r.expand?.labels)?.map((l) => l.label).join(",") ?? "-",
       }));
-      error = null;
+      error = "";
     } catch (e) {
-      error = e.message ?? "Gagal memuat data";
+      error = /** @type {Error} */ (e).message ?? "Gagal memuat data";
     }
   }
 
@@ -96,12 +101,65 @@
     await reload();
   }
 
+  /**
+   * @param {any} row
+   */
+  function openEdit(row) {
+    editTargetId = row.id;
+    editBMHPName = row.nama_bmhp;
+    editBMHPLabels = row.labels === "-" ? "" : row.labels;
+    openEditModal = true;
+  }
+
+  async function submitEdit() {
+    if (editBMHPName === "" || editBMHPLabels === "") {
+      notif.add({
+        kind: "error",
+        subtitle: "Isian tidak boleh kosong",
+        timeout: 3000,
+      });
+      return;
+    }
+
+    /** @type {Record<string, string>} */
+    const mapLabels = {};
+    /** @type {string[]} */
+    const relasiLabels = [];
+
+    const currentLabels = await pb.collection("master_bmhp_labels").getFullList();
+    for (const label of currentLabels) {
+      mapLabels[label["label"]] = label["id"];
+    }
+
+    const arrInputLabels = editBMHPLabels.split(",");
+    for (const inputLabel of arrInputLabels) {
+      if (!Object.hasOwn(mapLabels, inputLabel)) {
+        const record = await pb.collection("master_bmhp_labels").create({ label: inputLabel });
+        mapLabels[inputLabel] = record["id"];
+      }
+      relasiLabels.push(mapLabels[inputLabel]);
+    }
+
+    await pb.collection("master_bmhp").update(editTargetId, {
+      nama_bmhp: editBMHPName,
+      labels: relasiLabels,
+    });
+
+    openEditModal = false;
+    notif.add({
+      kind: "success",
+      subtitle: "Data berhasil diperbarui",
+      timeout: 3000,
+    });
+    await reload();
+  }
+
   onMount(() => loadData().finally(() => (loading = false)));
 </script>
 
 {#if loading}
   <DataTableSkeleton columns={3} rows={5} headers={headers} />
-{:else if error}
+{:else if error !== ""}
   <p class="error">{error}</p>
 {:else}
   <DataTable
@@ -122,7 +180,6 @@
           icon={Renew}
           disabled={reloading}
           on:click={reload}
-          tooltip="Muat ulang data"
         >
           {reloading ? "Memuat..." : "Reload"}
         </Button>
@@ -132,21 +189,19 @@
     <svelte:fragment slot="cell" let:row let:cell>
       {#if cell.key === "actions"}
         <Button
-          size="sm"
+          size="small"
           kind="ghost"
           icon={Edit}
-          iconDescription={`Edit item: ${row.nama_bmhp}`}
-          tooltipPosition={"left"}
-          on:click={() => {
-            console.log("edit");
-          }}
+          iconDescription={`Edit ${row.nama_bmhp}`}
+          tooltipPosition="left"
+          on:click={() => openEdit(row)}
         />
         <Button
-          size="sm"
+          size="small"
           kind="ghost"
           icon={TrashCan}
-          iconDescription={`Hapus item: ${row.nama_bmhp}`}
-          tooltipPosition={"right"}
+          iconDescription={`Hapus ${row.nama_bmhp}`}
+          tooltipPosition="right"
           on:click={() => {
             deleteTargetId = row.id;
             openDeleteModal = true;
@@ -166,6 +221,16 @@
     on:click:button--secondary={() => (openDeleteModal = false)}
   >
     <p>Apakah Anda yakin ingin menghapus data ini?</p>
+  </Modal>
+  <Modal
+    bind:open={openEditModal}
+    primaryButtonText="Simpan"
+    secondaryButtonText="Batal"
+    on:click:button--primary={submitEdit}
+    on:click:button--secondary={() => (openEditModal = false)}
+  >
+    <TextInput bind:value={editBMHPName} labelText="Nama BMHP" placeholder="Masukkan nama BMHP" />
+    <TextInput bind:value={editBMHPLabels} labelText="Labels" placeholder="pisahkan dengan koma ," />
   </Modal>
   <Modal
     bind:open={openAddModal}
