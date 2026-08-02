@@ -10,7 +10,7 @@
     ToolbarContent,
     ToolbarSearch,
   } from "carbon-components-svelte";
-  import { Renew, Add } from "carbon-icons-svelte";
+  import { Renew, Add, TrashCan } from "carbon-icons-svelte";
 
   import { pb, addBMHP } from "../../../pb/client.svelte";
   import { notif } from "../../../lib/notif.svelte";
@@ -23,6 +23,8 @@
   let openAddModal = $state(false);
   let inputBMHP = $state("");
   let inputBMHPLabels = $state("");
+  let openDeleteModal = $state(false);
+  let deleteTargetId = $state("");
 
   const headers = [
     { key: "nama_bmhp", value: "Nama BMHP" },
@@ -51,8 +53,7 @@
       allRows = records.map((r) => ({
         id: r.id,
         nama_bmhp: r.nama_bmhp,
-        labels: r.expand?.labels?.map((l) => l.label).join(", ") ?? "-",
-        actions: r.id
+        labels: r.expand?.labels?.map((l) => l.label).join(",") ?? "-",
       }));
       error = null;
     } catch (e) {
@@ -83,11 +84,23 @@
     if (resp.ok) await reload();
   }
 
+  async function deleteBMHP() {
+    await pb.collection("master_bmhp").delete(deleteTargetId);
+    openDeleteModal = false;
+    deleteTargetId = "";
+    notif.add({
+      kind: "success",
+      subtitle: "Data berhasil dihapus",
+      timeout: 3000,
+    });
+    await reload();
+  }
+
   onMount(() => loadData().finally(() => (loading = false)));
 </script>
 
 {#if loading}
-  <DataTableSkeleton columns={2} rows={5} headers={headers} />
+  <DataTableSkeleton columns={3} rows={5} headers={headers} />
 {:else if error}
   <p class="error">{error}</p>
 {:else}
@@ -116,7 +129,33 @@
         <Button icon={Add} onclick={() => (openAddModal = true)}>Tambah</Button>
       </ToolbarContent>
     </Toolbar>
+    <svelte:fragment slot="cell" let:row let:cell>
+      {#if cell.key === "actions"}
+        <Button
+          size="sm"
+          kind="ghost"
+          icon={TrashCan}
+          hideTooltip={true}
+          on:click={() => {
+            deleteTargetId = row.id;
+            openDeleteModal = true;
+          }}
+        />
+      {:else}
+        {cell.value}
+      {/if}
+    </svelte:fragment>
   </DataTable>
+  <Modal
+    bind:open={openDeleteModal}
+    danger
+    primaryButtonText="Ya"
+    secondaryButtonText="Tidak"
+    on:click:button--primary={deleteBMHP}
+    on:click:button--secondary={() => (openDeleteModal = false)}
+  >
+    <p>Apakah Anda yakin ingin menghapus data ini?</p>
+  </Modal>
   <Modal
     bind:open={openAddModal}
     primaryButtonText="Submit"
