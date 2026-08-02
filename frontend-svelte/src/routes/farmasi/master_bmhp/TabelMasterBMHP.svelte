@@ -10,7 +10,7 @@
     ToolbarContent,
     ToolbarSearch,
   } from "carbon-components-svelte";
-  import { Renew, Add, TrashCan } from "carbon-icons-svelte";
+  import { Renew, Add, TrashCan, Edit } from "carbon-icons-svelte";
 
   import { pb, addBMHP } from "../../../pb/client.svelte";
   import { notif } from "../../../lib/notif.svelte";
@@ -134,8 +134,19 @@
         <Button
           size="sm"
           kind="ghost"
+          icon={Edit}
+          iconDescription={`Edit item: ${row.nama_bmhp}`}
+          tooltipPosition={"left"}
+          on:click={() => {
+            console.log("edit");
+          }}
+        />
+        <Button
+          size="sm"
+          kind="ghost"
           icon={TrashCan}
-          hideTooltip={true}
+          iconDescription={`Hapus item: ${row.nama_bmhp}`}
+          tooltipPosition={"right"}
           on:click={() => {
             deleteTargetId = row.id;
             openDeleteModal = true;
