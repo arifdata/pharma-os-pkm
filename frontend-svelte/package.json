@@ -19,8 +19,8 @@
     "vite": "^8.0.12"
   },
   "dependencies": {
-    "carbon-components-svelte": "^0.107.1",
-    "carbon-icons-svelte": "^13.11.0",
+    "carbon-components-svelte": "^0.110.2",
+    "carbon-icons-svelte": "^13.14.0",
     "pocketbase": "^0.27.0",
     "svelte-spa-router": "^5.1.0"
   }
