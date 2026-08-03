@@ -88,6 +88,7 @@
       <SideNavLink text="Home" href="#/" icon={Home} />
       <SideNavMenu text="Farmasi" expanded={true} icon={Medication}>
         <SideNavMenuItem href="#/masterbmhp" text="Master BMHP" />
+        <SideNavMenuItem href="#/penerimaan_gudang" text="Penerimaan Gudang" />
       </SideNavMenu>
       <SideNavDivider />
       <SideNavLink text="Testing Page" href="#/testing"/>

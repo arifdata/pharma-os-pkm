@@ -12,8 +12,8 @@
   } from "carbon-components-svelte";
   import { Renew, Add, TrashCan, Edit } from "carbon-icons-svelte";
 
-  import { pb } from "../../../pb/client.svelte";
-  import { notif } from "../../../lib/notif.svelte";
+  import { pb } from "../../pb/client.svelte";
+  import { notif } from "../../lib/notif.svelte";
 
   /** @type {any[]} */
   let allRows = $state([]);
@@ -55,7 +55,7 @@
         expand: "labels",
         sort: "created",
       });
-      allRows = records.map((r) => ({
+      allRows = records.map((/** @type {any} */ r) => ({
         id: r.id,
         nama_bmhp: r.nama_bmhp,
         labels: /** @type {any[]} */ (r.expand?.labels)?.map((l) => l.label).join(",") ?? "-",

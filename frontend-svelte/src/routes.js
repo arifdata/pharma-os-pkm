@@ -2,6 +2,7 @@
 import HomePage from './routes/HomePage.svelte'
 import TestingPage from './routes/TestingPage.svelte'
 import MasterBMHPPage from './routes/farmasi/MasterBMHPPage.svelte'
+import PenerimaanGudangPage from './routes/farmasi/PenerimaanGudangPage.svelte'
 
 // Route Pendaftaran
 // import DataPasienPage from './routes/pendaftaran/DataPasienPage.svelte'
@@ -24,6 +25,7 @@ export default {
     '/testing': TestingPage,
 
     '/masterbmhp': MasterBMHPPage,
+    '/penerimaan_gudang': PenerimaanGudangPage,
 
     // '/data_pasien': DataPasienPage,
     // '/data_pasien/detail/:id': PasienDetailPage,

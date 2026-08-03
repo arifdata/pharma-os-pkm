@@ -1,12 +1,15 @@
-<script>
-  import TabelMasterBMHP from "./TabelMasterBMHP.svelte";
-  import { getAuthState } from "../../pb/client.svelte";
 
+<script>
+  import { Column } from "carbon-components-svelte";
+  import { getAuthState } from "../../pb/client.svelte";
   let auth = getAuthState();
+
 </script>
 
 {#if auth.isLoggedIn}
-  <TabelMasterBMHP />
+<Column>
+  Other Page
+</Column>
 {:else}
-  Belum login
+Belum login
 {/if}
