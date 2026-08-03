@@ -3,7 +3,7 @@
 ## Stack
 
 - **Frontend**: Svelte 5 (runes mode) + Vite 8 + Carbon Components Svelte + Carbon Icons Svelte
-- **Backend**: PocketBase 0.39.9 (binary tunggal, gitignored; SQLite di `pb_data/`)
+- **Backend**: PocketBase 0.39.10 (binary tunggal, gitignored; SQLite di `pb_data/`)
 - **Router**: `svelte-spa-router` (hash-based, `#/path`) — sudah terpasang & dipasang di `App.svelte`
 - **Package manager**: `bun`
 
