@@ -11,6 +11,7 @@
     ToolbarSearch,
     TagSet,
     Tag,
+    Pagination,
   } from "carbon-components-svelte";
   import { Renew, Add, TrashCan, Edit } from "carbon-icons-svelte";
 
@@ -32,6 +33,8 @@
   let editTargetId = $state("");
   let editBMHPName = $state("");
   let editBMHPLabels = $state("");
+  let currentPage = $state(1);
+  let pageSize = $state(10);
 
   const headers = [
     { key: "nama_bmhp", value: "Nama BMHP", width: "50%"},
@@ -50,6 +53,11 @@
           );
         })
   );
+
+  $effect(() => {
+    rows;
+    currentPage = 1;
+  });
 
   async function loadData() {
     try {
@@ -205,13 +213,10 @@
     title="Master BMHP"
     size="short"
     headers={headers}
-    // headers={[
-    //   { key: "nama_bmhp", value: "Nama BMHP" },
-    //   { key: "labels", value: "Labels" },
-    //   { key: "actions", value: "Actions" },
-    // ]}
     {rows}
-    pageSize={10}
+    {pageSize}
+    page={currentPage}
+    sortable
   >
     <Toolbar>
       <ToolbarContent>
@@ -270,6 +275,13 @@
       {/if}
     </svelte:fragment>
   </DataTable>
+  <Pagination
+    bind:page={currentPage}
+    bind:pageSize
+    totalItems={rows.length}
+    pageSizes={[5, 10, 20, 50]}
+    size="sm"
+  />
   <Modal
     bind:open={openDeleteModal}
     danger
