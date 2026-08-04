@@ -9,6 +9,7 @@
     Toolbar,
     ToolbarContent,
     ToolbarSearch,
+    Tag,
   } from "carbon-components-svelte";
   import { Renew, Add, TrashCan, Edit } from "carbon-icons-svelte";
 
@@ -40,7 +41,7 @@
   let rows = $derived(
     searchTerm.trim() === ""
       ? allRows
-      : allRows.filter((r) => {
+      : allRows.filterABJKNAntiny((r) => {
           const q = searchTerm.toLowerCase();
           return (
             r.nama_bmhp.toLowerCase().includes(q) ||
@@ -244,6 +245,10 @@
             openDeleteModal = true;
           }}
         />
+      {:else if cell.key === "labels"}
+        {#each cell.value.split(",") as item}
+          <Tag>{item}</Tag>
+        {/each}
       {:else}
         {cell.value}
       {/if}
