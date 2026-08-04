@@ -9,6 +9,7 @@
     Toolbar,
     ToolbarContent,
     ToolbarSearch,
+    TagSet,
     Tag,
   } from "carbon-components-svelte";
   import { Renew, Add, TrashCan, Edit } from "carbon-icons-svelte";
@@ -33,15 +34,15 @@
   let editBMHPLabels = $state("");
 
   const headers = [
-    { key: "nama_bmhp", value: "Nama BMHP" },
-    { key: "labels", value: "Labels" },
+    { key: "nama_bmhp", value: "Nama BMHP", width: "50%"},
+    { key: "labels", value: "Labels"},
     { key: "actions", value: "Actions" },
   ];
 
   let rows = $derived(
     searchTerm.trim() === ""
       ? allRows
-      : allRows.filterABJKNAntiny((r) => {
+      : allRows.filter((r) => {
           const q = searchTerm.toLowerCase();
           return (
             r.nama_bmhp.toLowerCase().includes(q) ||
@@ -203,25 +204,36 @@
   <DataTable
     title="Master BMHP"
     size="short"
-    {headers}
+    headers={headers}
+    // headers={[
+    //   { key: "nama_bmhp", value: "Nama BMHP" },
+    //   { key: "labels", value: "Labels" },
+    //   { key: "actions", value: "Actions" },
+    // ]}
     {rows}
     pageSize={10}
-    zebra
   >
     <Toolbar>
       <ToolbarContent>
         <ToolbarSearch
           bind:value={searchTerm}
           on:clear={() => (searchTerm = "")}
+          persistent
         />
         <Button
           icon={Renew}
+          iconDescription="Reload Data"
+          tooltipPosition="top"
           disabled={reloading}
           on:click={reload}
         >
-          {reloading ? "Memuat..." : "Reload"}
         </Button>
-        <Button icon={Add} onclick={() => (openAddModal = true)}>Tambah</Button>
+        <Button
+          icon={Add}
+          iconDescription="Tambah Data"
+          tooltipPosition="top"
+          on:click={() => (openAddModal = true)}
+        />
       </ToolbarContent>
     </Toolbar>
     <svelte:fragment slot="cell" let:row let:cell>
@@ -246,9 +258,13 @@
           }}
         />
       {:else if cell.key === "labels"}
+        <TagSet
+          multiline
+        >
         {#each cell.value.split(",") as item}
-          <Tag>{item}</Tag>
+          <Tag size="sm" type="outline">{item}</Tag>
         {/each}
+        </TagSet>
       {:else}
         {cell.value}
       {/if}
