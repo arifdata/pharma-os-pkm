@@ -1,7 +1,7 @@
 // Route Dashboard
 import HomePage from './routes/HomePage.svelte'
 import TestingPage from './routes/TestingPage.svelte'
-import MasterBMHPPage from './routes/farmasi/MasterBMHPPage.svelte'
+import MasterBMHPPage from './routes/farmasi/master_bmhp/MasterBMHPPage.svelte'
 import PenerimaanGudangPage from './routes/farmasi/PenerimaanGudangPage.svelte'
 
 // Route Pendaftaran

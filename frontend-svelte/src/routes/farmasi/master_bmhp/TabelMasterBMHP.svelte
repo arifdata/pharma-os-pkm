@@ -15,8 +15,8 @@
   } from "carbon-components-svelte";
   import { Renew, Add, TrashCan, Edit } from "carbon-icons-svelte";
 
-  import { pb } from "../../pb/client.svelte";
-  import { notif } from "../../lib/notif.svelte";
+  import { pb } from "../../../pb/client.svelte";
+  import { notif } from "../../../lib/notif.svelte";
 
   /** @type {any[]} */
   let allRows = $state([]);
