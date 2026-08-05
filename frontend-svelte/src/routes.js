@@ -1,8 +1,6 @@
 // Route Dashboard
 import HomePage from './routes/HomePage.svelte'
 import TestingPage from './routes/TestingPage.svelte'
-import MasterBMHPPage from './routes/farmasi/master_bmhp/MasterBMHPPage.svelte'
-import PenerimaanGudangPage from './routes/farmasi/PenerimaanGudangPage.svelte'
 
 // Route Pendaftaran
 // import DataPasienPage from './routes/pendaftaran/DataPasienPage.svelte'
@@ -10,8 +8,8 @@ import PenerimaanGudangPage from './routes/farmasi/PenerimaanGudangPage.svelte'
 // import TambahPasienPage from './routes/pendaftaran/TambahPasienPage.svelte'
 
 // Route Farmasi
-// import MasterBMHP from './routes/farmasi/MasterBMHP.svelte'
-// import DetailMasterBMHP from './routes/farmasi/DetailMasterBMHP.svelte'
+import MasterBMHPPage from './routes/farmasi/master_bmhp/MasterBMHPPage.svelte'
+import PenerimaanGudangPage from './routes/farmasi/penerimaan_gudang/PenerimaanGudangPage.svelte'
 
 // Example routes
 // import Name from './routes/Name.svelte'

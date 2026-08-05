@@ -1,14 +1,14 @@
 
 <script>
   import { Column } from "carbon-components-svelte";
-  import { getAuthState } from "../../pb/client.svelte";
+  import { getAuthState } from "../../../pb/client.svelte";
   let auth = getAuthState();
 
 </script>
 
 {#if auth.isLoggedIn}
 <Column>
-  Other Page
+  Other
 </Column>
 {:else}
 Belum login
