@@ -1,15 +1,12 @@
 
 <script>
-  import { Column } from "carbon-components-svelte";
+  import BukuPenerimaan from "./BukuPenerimaan.svelte";
   import { getAuthState } from "../../../pb/client.svelte";
   let auth = getAuthState();
-
 </script>
 
 {#if auth.isLoggedIn}
-<Column>
-  Other
-</Column>
+  <BukuPenerimaan />
 {:else}
-Belum login
+  Belum login
 {/if}
