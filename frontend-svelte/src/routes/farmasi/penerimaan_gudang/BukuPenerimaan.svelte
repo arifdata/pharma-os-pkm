@@ -1,6 +1,23 @@
 <script>
-  import { Button, ButtonSet, TextInput } from "carbon-components-svelte";
+  import { Box, Button, ButtonSet, TextInput } from "carbon-components-svelte";
+  import { Add, Subtract, RenewAlt } from "carbon-icons-svelte";
   let items = $state([]);
+  let no_surat = $state("");
+
+  function generateNomorSurat() {
+    const date = new Date();
+    const monthNum = String(date.getMonth() + 1).padStart(2, '0');
+    const yearNum = date.getFullYear();
+
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let randomString = '';
+    for (let i = 0; i < 6; i++) {
+      randomString += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    const generated = `${monthNum}/${randomString}/${yearNum}`
+    return generated
+  }
 </script>
 
 {#snippet renderEl()}
@@ -11,13 +28,24 @@
   {/if}
 {/snippet}
 
+<Box fill="field" padding={4} marginY={4}>
+  <TextInput labelText="Nomor Surat" placeholder="Input nomor surat..." bind:value={no_surat}/>
+  <br>
+  <Button icon={RenewAlt} size="small" on:click={() => {
+    const srt = generateNomorSurat();
+    no_surat = srt;
+  }}>Generate No.Surat</Button>
+</Box>
+
+<Box fill="field" padding={4} marginY={4}>
 <ButtonSet>
-  <Button on:click={() => {
+  <Button icon={Add} on:click={() => {
     items.push({ "nama": "" });
-  }}>Add</Button>
-  <Button on:click={() => {
+  }} />
+  <Button icon={Subtract} on:click={() => {
     items.pop();
-  }}>Sub</Button>
+  }} />
 </ButtonSet>
+</Box>
 
 {@render renderEl()}
