@@ -1,8 +1,9 @@
 <script>
-  import { Box, Button, ButtonSet, TextInput } from "carbon-components-svelte";
+  import { Box, Button, ButtonSet, TextInput,DatePicker, DatePickerInput } from "carbon-components-svelte";
   import { Add, Subtract, RenewAlt } from "carbon-icons-svelte";
   let items = $state([]);
-  let no_surat = $state("");
+  let nomorSurat = $state("");
+  let tanggalTerima = $state("");
 
   function generateNomorSurat() {
     const date = new Date();
@@ -22,20 +23,30 @@
 
 {#snippet renderEl()}
   {#if items.length > 0}
-    {#each items as item}
-      <TextInput light labelText="User name" placeholder="Enter user name..." bind:value={item.nama} />
-    {/each}
+    <Box fill="field" padding={4} marginY={4}>
+      {#each items as item}
+        <TextInput light labelText="User name" placeholder="Enter user name..." bind:value={item.nama} />
+      {/each}
+    </Box>
   {/if}
 {/snippet}
 
 <Box fill="field" padding={4} marginY={4}>
-  <TextInput labelText="Nomor Surat" placeholder="Input nomor surat..." bind:value={no_surat}/>
+  <TextInput labelText="Nomor Surat" placeholder="Input nomor surat..." bind:value={nomorSurat}/>
   <br>
-  <Button icon={RenewAlt} size="small" on:click={() => {
+  <Button kind="tertiary" icon={RenewAlt} size="small" on:click={() => {
     const srt = generateNomorSurat();
-    no_surat = srt;
+    nomorSurat = srt;
   }}>Generate No.Surat</Button>
 </Box>
+
+<Box fill="field" padding={4} marginY={4}>
+  <DatePicker datePickerType="single" dateFormat="Y-m-d" on:change bind:value={tanggalTerima}>
+    <DatePickerInput labelText="Tanggal Terima" placeholder="yyyy-mm-dd" />
+  </DatePicker>
+</Box>
+
+{@render renderEl()}
 
 <Box fill="field" padding={4} marginY={4}>
 <ButtonSet>
@@ -48,4 +59,3 @@
 </ButtonSet>
 </Box>
 
-{@render renderEl()}
