@@ -1,9 +1,34 @@
 <script>
+  import { onMount } from "svelte";
   import { Box, Button, ButtonSet, TextInput,DatePicker, DatePickerInput } from "carbon-components-svelte";
+  import { Indonesian } from "flatpickr/dist/l10n/id";
   import { Add, Subtract, RenewAlt } from "carbon-icons-svelte";
+  import { pb } from "../../../pb/client.svelte";
+
+  /** @type {{nama:string}[]} */
   let items = $state([]);
   let nomorSurat = $state("");
   let tanggalTerima = $state("");
+  /** @type {{id:string, nama_bmhp:string}[]} */
+  let masterBMHP = $state([]);
+
+  async function fetchMasterBMHP() {
+    try {
+      const records = await pb.collection("master_bmhp").getFullList({
+        sort: "nama_bmhp",
+      });
+      masterBMHP = records.map((r) => ({
+        id: r.id,
+        nama_bmhp: r.nama_bmhp,
+      }));
+    } catch (e) {
+      console.error("Gagal fetch master_bmhp:", e);
+    }
+  }
+
+  onMount(() => {
+    fetchMasterBMHP();
+  });
 
   function generateNomorSurat() {
     const date = new Date();
@@ -19,13 +44,14 @@
     const generated = `${monthNum}/${randomString}/${yearNum}`
     return generated
   }
+
 </script>
 
 {#snippet renderEl()}
   {#if items.length > 0}
     <Box fill="field" padding={4} marginY={4}>
       {#each items as item}
-        <TextInput light labelText="User name" placeholder="Enter user name..." bind:value={item.nama} />
+        <TextInput light labelText="User name" placeholder="Enter user name..." bind:value={item.id_bmhp} />
       {/each}
     </Box>
   {/if}
@@ -41,7 +67,7 @@
 </Box>
 
 <Box fill="field" padding={4} marginY={4}>
-  <DatePicker datePickerType="single" dateFormat="Y-m-d" on:change bind:value={tanggalTerima}>
+  <DatePicker datePickerType="single" locale={Indonesian} dateFormat="Y-m-d" on:change bind:value={tanggalTerima}>
     <DatePickerInput labelText="Tanggal Terima" placeholder="yyyy-mm-dd" />
   </DatePicker>
 </Box>
@@ -51,7 +77,7 @@
 <Box fill="field" padding={4} marginY={4}>
 <ButtonSet>
   <Button icon={Add} on:click={() => {
-    items.push({ "nama": "" });
+    items.push({ "id_bmhp": "" });
   }} />
   <Button icon={Subtract} on:click={() => {
     items.pop();
