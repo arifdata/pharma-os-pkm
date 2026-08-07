@@ -1,12 +1,22 @@
 <script>
   import { onMount } from "svelte";
-  import { Box, Button, ButtonSet, TextInput,DatePicker, DatePickerInput } from "carbon-components-svelte";
+  import {
+    Box,
+    Button,
+    ButtonSet,
+    TextInput,
+    DatePicker,
+    DatePickerInput,
+    SearchMenu,
+    SearchMenuItem,
+  } from "carbon-components-svelte";
   import { Indonesian } from "flatpickr/dist/l10n/id";
   import { Add, Subtract, RenewAlt } from "carbon-icons-svelte";
   import { pb } from "../../../pb/client.svelte";
 
   /** @type {{nama:string}[]} */
   let items = $state([]);
+  $inspect(items);
   let nomorSurat = $state("");
   let tanggalTerima = $state("");
   /** @type {{id:string, nama_bmhp:string}[]} */
@@ -19,7 +29,7 @@
       });
       masterBMHP = records.map((r) => ({
         id: r.id,
-        nama_bmhp: r.nama_bmhp,
+        name: r.nama_bmhp,
       }));
     } catch (e) {
       console.error("Gagal fetch master_bmhp:", e);
@@ -47,11 +57,21 @@
 
 </script>
 
+<!-- {@debug masterBMHP} -->
+
 {#snippet renderEl()}
   {#if items.length > 0}
     <Box fill="field" padding={4} marginY={4}>
       {#each items as item}
-        <TextInput light labelText="User name" placeholder="Enter user name..." bind:value={item.id_bmhp} />
+        <SearchMenu labelText="Search" placeholder="Search..." bind:value={item.id_bmhp}>
+          {#each masterBMHP as bmhp (bmhp.id)}
+            <SearchMenuItem
+              text={bmhp.name}
+              value={bmhp.id}
+            />
+          {/each}
+        </SearchMenu>
+        <!-- <TextInput light labelText="User name" placeholder="Enter user name..." bind:value={item.id_bmhp} /> -->
       {/each}
     </Box>
   {/if}
