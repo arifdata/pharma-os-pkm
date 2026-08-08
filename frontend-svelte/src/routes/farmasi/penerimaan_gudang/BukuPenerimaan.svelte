@@ -14,12 +14,12 @@
   import { Add, Subtract, RenewAlt } from "carbon-icons-svelte";
   import { pb } from "../../../pb/client.svelte";
 
-  /** @type {{nama:string}[]} */
+  /** @type {{id_bmhp:string}[]} */
   let items = $state([]);
   $inspect(items);
   let nomorSurat = $state("");
   let tanggalTerima = $state("");
-  /** @type {{id:string, nama_bmhp:string}[]} */
+  /** @type {{id:string, name:string}[]} */
   let masterBMHP = $state([]);
 
   async function fetchMasterBMHP() {
@@ -62,8 +62,19 @@
 {#snippet renderEl()}
   {#if items.length > 0}
     <Box fill="field" padding={4} marginY={4}>
-      {#each items as item}
-        <SearchMenu labelText="Search" placeholder="Search..." bind:value={item.id_bmhp}>
+      {#each items as item, idx (idx)}
+        {@const selectedName = masterBMHP.find(m => m.id === item.id_bmhp)?.name ?? ''}
+        <SearchMenu
+          labelText="Search"
+          placeholder="Search..."
+          value={selectedName}
+          on:select={(e) => {
+            item.id_bmhp = e.detail.value;
+          }}
+          on:clear={() => {
+            item.id_bmhp = '';
+          }}
+        >
           {#each masterBMHP as bmhp (bmhp.id)}
             <SearchMenuItem
               text={bmhp.name}
