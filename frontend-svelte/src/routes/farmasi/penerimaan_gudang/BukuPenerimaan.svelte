@@ -69,7 +69,7 @@
     <Box fill="field" paddingX={0} paddingY={4} marginY={4}>
       <Grid>
         {#each items as item, idx (idx)}
-          <Row style="align-items: flex-start;">
+          <Row style="align-items: flex-start; margin-bottom: 1rem;">
             {@const selectedName = masterBMHP.find(m => m.id === item.id_bmhp)?.name ?? ''}
             <Column>
               <div class="label-text">Nama BMHP</div>
@@ -114,8 +114,20 @@
               <DatePicker datePickerType="single" locale={Indonesian} dateFormat="Y-m-d" on:change bind:value={item.tgl_expired}>
                 <DatePickerInput labelText="Tanggal Expired" placeholder="yyyy-mm-dd" />
               </DatePicker>
-              </Column>
+            </Column>
+            <Column>
+              <NumberInput
+                labelText="Harga Satuan (Rp.)"
+                size="sm"
+                fluid
+                bind:value={item.harga_satuan}
+                min={0}
+                step={0.5}
+                invalidText="Tidak bisa di bawah 0"
+              />
+            </Column>
           </Row>
+          <br />
         {/each}
       </Grid>
     </Box>
@@ -147,7 +159,7 @@
 <Box fill="field" padding={4} marginY={4}>
 <ButtonSet>
   <Button icon={Add} on:click={() => {
-    items.push({ "id_bmhp": "", "jumlah": 1, "no_batch": "", "tgl_expired": "" });
+    items.push({ "id_bmhp": "", "jumlah": 1, "no_batch": "", "tgl_expired": "", "harga_satuan": 0 });
   }} />
   <Button icon={Subtract} on:click={() => {
     items.pop();
