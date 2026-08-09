@@ -69,11 +69,11 @@
     <Box fill="field" padding={4} marginY={4}>
       <Grid>
         {#each items as item, idx (idx)}
-          <Row>
+          <Row style="align-items: flex-start;">
             {@const selectedName = masterBMHP.find(m => m.id === item.id_bmhp)?.name ?? ''}
             <Column>
+              <div class="label-text">Nama BMHP</div>
               <SearchMenu
-                labelText="Search"
                 placeholder="Search Nama BMHP..."
                 size="sm"
                 value={selectedName}
@@ -141,4 +141,15 @@
   }} />
 </ButtonSet>
 </Box>
+
+<style>
+  .label-text {
+    margin-top: 0.55rem;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: #525252;
+    margin-bottom: 0.5rem;
+    line-height: 1rem;
+  }
+</style>
 
