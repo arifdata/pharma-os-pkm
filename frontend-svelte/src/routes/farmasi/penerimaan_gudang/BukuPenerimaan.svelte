@@ -66,7 +66,7 @@
 
 {#snippet renderEl()}
   {#if items.length > 0}
-    <Box fill="field" padding={4} marginY={4}>
+    <Box fill="field" paddingX={0} paddingY={4} marginY={4}>
       <Grid>
         {#each items as item, idx (idx)}
           <Row style="align-items: flex-start;">
@@ -110,6 +110,11 @@
                 bind:value={item.no_batch}
               />
             </Column>
+            <Column>
+              <DatePicker datePickerType="single" locale={Indonesian} dateFormat="Y-m-d" on:change bind:value={item.tgl_expired}>
+                <DatePickerInput labelText="Tanggal Expired" placeholder="yyyy-mm-dd" />
+              </DatePicker>
+              </Column>
           </Row>
         {/each}
       </Grid>
@@ -142,7 +147,7 @@
 <Box fill="field" padding={4} marginY={4}>
 <ButtonSet>
   <Button icon={Add} on:click={() => {
-    items.push({ "id_bmhp": "", "jumlah": 1, "no_batch": "" });
+    items.push({ "id_bmhp": "", "jumlah": 1, "no_batch": "", "tgl_expired": "" });
   }} />
   <Button icon={Subtract} on:click={() => {
     items.pop();
