@@ -9,7 +9,10 @@
     DatePickerInput,
     SearchMenu,
     SearchMenuItem,
-    NumberInput
+    NumberInput,
+    Column,
+    Grid,
+    Row
   } from "carbon-components-svelte";
   import { Indonesian } from "flatpickr/dist/l10n/id";
   import { Add, Subtract, RenewAlt } from "carbon-icons-svelte";
@@ -64,36 +67,44 @@
 {#snippet renderEl()}
   {#if items.length > 0}
     <Box fill="field" padding={4} marginY={4}>
-      {#each items as item, idx (idx)}
-        {@const selectedName = masterBMHP.find(m => m.id === item.id_bmhp)?.name ?? ''}
-        <SearchMenu
-          labelText="Search"
-          placeholder="Search Nama BMHP..."
-          size="sm"
-          value={selectedName}
-          on:select={(e) => {
-            item.id_bmhp = e.detail.value;
-          }}
-          on:clear={() => {
-            item.id_bmhp = '';
-          }}
-        >
-          {#each masterBMHP as bmhp (bmhp.id)}
-            <SearchMenuItem
-              text={bmhp.name}
-              value={bmhp.id}
-            />
-          {/each}
-        </SearchMenu>
-        <NumberInput
-          labelText="Jumlah"
-          size="sm"
-          fluid
-          bind:value={item.jumlah}
-          min={1}
-          invalidText="Tidak bisa di bawah 1"
-        />
-      {/each}
+      <Grid>
+        {#each items as item, idx (idx)}
+          <Row>
+            {@const selectedName = masterBMHP.find(m => m.id === item.id_bmhp)?.name ?? ''}
+            <Column>
+              <SearchMenu
+                labelText="Search"
+                placeholder="Search Nama BMHP..."
+                size="sm"
+                value={selectedName}
+                on:select={(e) => {
+                  item.id_bmhp = e.detail.value;
+                }}
+                on:clear={() => {
+                  item.id_bmhp = '';
+                }}
+              >
+                {#each masterBMHP as bmhp (bmhp.id)}
+                  <SearchMenuItem
+                    text={bmhp.name}
+                    value={bmhp.id}
+                  />
+                {/each}
+              </SearchMenu>
+            </Column>
+            <Column>
+              <NumberInput
+                labelText="Jumlah"
+                size="sm"
+                fluid
+                bind:value={item.jumlah}
+                min={1}
+                invalidText="Tidak bisa di bawah 1"
+              />
+            </Column>
+          </Row>
+        {/each}
+      </Grid>
     </Box>
   {/if}
 {/snippet}
