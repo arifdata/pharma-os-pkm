@@ -18,6 +18,7 @@
   let items = $state([]);
   $inspect(items);
   let nomorSurat = $state("");
+  let sumberBarang = $state("");
   let tanggalTerima = $state("");
   /** @type {{id:string, name:string}[]} */
   let masterBMHP = $state([]);
@@ -96,6 +97,11 @@
     nomorSurat = srt;
   }}>Generate No.Surat</Button>
 </Box>
+
+<Box fill="field" padding={4} marginY={4}>
+  <TextInput labelText="Sumber Barang" placeholder="Input sumber barang..." bind:value={sumberBarang}/>
+</Box>
+
 
 <Box fill="field" padding={4} marginY={4}>
   <DatePicker datePickerType="single" locale={Indonesian} dateFormat="Y-m-d" on:change bind:value={tanggalTerima}>
