@@ -102,6 +102,14 @@
                 invalidText="Tidak bisa di bawah 1"
               />
             </Column>
+            <Column>
+              <TextInput
+                labelText="Nomor Batch"
+                size="sm"
+                fluid
+                bind:value={item.no_batch}
+              />
+            </Column>
           </Row>
         {/each}
       </Grid>
@@ -134,7 +142,7 @@
 <Box fill="field" padding={4} marginY={4}>
 <ButtonSet>
   <Button icon={Add} on:click={() => {
-    items.push({ "id_bmhp": "", "jumlah": 1 });
+    items.push({ "id_bmhp": "", "jumlah": 1, "no_batch": "" });
   }} />
   <Button icon={Subtract} on:click={() => {
     items.pop();
