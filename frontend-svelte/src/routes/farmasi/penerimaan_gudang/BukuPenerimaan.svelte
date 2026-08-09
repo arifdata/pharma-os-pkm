@@ -147,7 +147,7 @@
     margin-top: 0.55rem;
     font-size: 0.75rem;
     font-weight: 400;
-    color: #525252;
+    color: var(--cds-text-secondary, #525252);
     margin-bottom: 0.5rem;
     line-height: 1rem;
   }
