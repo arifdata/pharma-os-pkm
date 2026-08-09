@@ -99,7 +99,14 @@
 </SideNav>
 
 <Content>
-  <Router {routes} />
+  {#if auth.isLoggedIn}
+    <Router {routes} />
+  {:else}
+    <div class="locked-message">
+      <h3>Menu terkunci</h3>
+      <p>Login dengan akun superuser untuk mengakses aplikasi.</p>
+    </div>
+  {/if}
 </Content>
 
 <Modal
@@ -133,3 +140,14 @@
   <TextInput bind:value={email} labelText="Email" placeholder="Masukkan email..." required />
   <PasswordInput bind:value={password} labelText="Password" placeholder="Masukkan password..." required/>
 </Modal>
+
+<style>
+  .locked-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    gap: 0.5rem;
+  }
+</style>
