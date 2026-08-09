@@ -9,6 +9,7 @@
     DatePickerInput,
     SearchMenu,
     SearchMenuItem,
+    NumberInput
   } from "carbon-components-svelte";
   import { Indonesian } from "flatpickr/dist/l10n/id";
   import { Add, Subtract, RenewAlt } from "carbon-icons-svelte";
@@ -67,7 +68,8 @@
         {@const selectedName = masterBMHP.find(m => m.id === item.id_bmhp)?.name ?? ''}
         <SearchMenu
           labelText="Search"
-          placeholder="Search..."
+          placeholder="Search Nama BMHP..."
+          size="sm"
           value={selectedName}
           on:select={(e) => {
             item.id_bmhp = e.detail.value;
@@ -83,7 +85,14 @@
             />
           {/each}
         </SearchMenu>
-        <!-- <TextInput light labelText="User name" placeholder="Enter user name..." bind:value={item.id_bmhp} /> -->
+        <NumberInput
+          labelText="Jumlah"
+          size="sm"
+          fluid
+          bind:value={item.jumlah}
+          min={1}
+          invalidText="Tidak bisa di bawah 1"
+        />
       {/each}
     </Box>
   {/if}
@@ -114,7 +123,7 @@
 <Box fill="field" padding={4} marginY={4}>
 <ButtonSet>
   <Button icon={Add} on:click={() => {
-    items.push({ "id_bmhp": "" });
+    items.push({ "id_bmhp": "", "jumlah": 1 });
   }} />
   <Button icon={Subtract} on:click={() => {
     items.pop();
