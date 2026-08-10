@@ -67,70 +67,79 @@
   {#if items.length > 0}
     <Box fill="layer-01" padding={4} marginY={4}>
       <Text>Daftar Items:</Text>
-        {#each items as item, idx (idx)}
-          <Box fill="layer-02" padding={4} marginY={4}>
-            <Grid>
-              <Row style="align-items: flex-start; margin-bottom: 1rem;">
-                {@const selectedName = masterBMHP.find(m => m.id === item.id_bmhp)?.name ?? ''}
-                  <div class="label-text">Nama BMHP</div>
-                  <SearchMenu
-                    placeholder="Search Nama BMHP..."
-                    size="sm"
-                    value={selectedName}
-                    on:select={(e) => {
-                      item.id_bmhp = e.detail.value;
-                    }}
-                    on:clear={() => {
-                      item.id_bmhp = '';
-                    }}
-                  >
-                    {#each masterBMHP as bmhp (bmhp.id)}
-                      <SearchMenuItem
-                        text={bmhp.name}
-                        value={bmhp.id}
-                      />
-                    {/each}
-                  </SearchMenu>
-              </Row>
-              <Row noGutterLeft>
-                <Column>
-                  <NumberInput
-                    labelText="Jumlah"
-                    size="sm"
-                    fluid
-                    bind:value={item.jumlah}
-                    min={1}
-                    invalidText="Tidak bisa di bawah 1"
+      {#each items as item, idx (idx)}
+        <Box fill="layer-02" padding={4} marginY={4}>
+          <Grid>
+            <Row style="align-items: flex-start; margin-bottom: 1rem;">
+              {@const selectedName = masterBMHP.find(m => m.id === item.id_bmhp)?.name ?? ''}
+              <div class="label-text">{idx+1}</div>
+              <SearchMenu
+                placeholder="Search Nama BMHP..."
+                size="sm"
+                value={selectedName}
+                on:select={(e) => {
+                  item.id_bmhp = e.detail.value;
+                }}
+                on:clear={() => {
+                  item.id_bmhp = '';
+                }}
+              >
+                {#each masterBMHP as bmhp (bmhp.id)}
+                  <SearchMenuItem
+                    text={bmhp.name}
+                    value={bmhp.id}
                   />
-                </Column>
-                <Column>
-                  <TextInput
-                    labelText="Nomor Batch"
-                    size="sm"
-                    fluid
-                    bind:value={item.no_batch}
-                  />
-                </Column>
-                <Column>
-                  <DatePicker datePickerType="single" locale={Indonesian} dateFormat="Y-m-d" on:change bind:value={item.tgl_expired}>
-                    <DatePickerInput labelText="Tanggal Expired" placeholder="yyyy-mm-dd" />
-                  </DatePicker>
-                </Column>
-                <Column>
-                  <NumberInput
-                    labelText="Harga Satuan (Rp.)"
-                    size="sm"
-                    fluid
-                    bind:value={item.harga_satuan}
-                    min={0}
-                    step={0.5}
-                    invalidText="Tidak bisa di bawah 0"
-                  />
-                </Column>
-              </Row>
-            </Grid>
-          </Box>
-        {/each}
+                {/each}
+              </SearchMenu>
+            </Row>
+            <Row noGutterLeft>
+              <Column>
+                <NumberInput
+                  labelText="Jumlah"
+                  size="sm"
+                  fluid
+                  bind:value={item.jumlah}
+                  min={1}
+                  invalidText="Tidak bisa di bawah 1"
+                />
+              </Column>
+              <Column>
+                <TextInput
+                  labelText="Nomor Batch"
+                  size="sm"
+                  fluid
+                  bind:value={item.no_batch}
+                />
+              </Column>
+              <Column>
+                <DatePicker fluid datePickerType="single" locale={Indonesian} dateFormat="Y-m-d" on:change bind:value={item.tgl_expired}>
+                  <DatePickerInput labelText="Tanggal Expired" placeholder="yyyy-mm-dd" />
+                </DatePicker>
+              </Column>
+              <Column>
+                <NumberInput
+                  labelText="Harga Satuan (Rp.)"
+                  size="sm"
+                  fluid
+                  bind:value={item.harga_satuan}
+                  min={0}
+                  step={0.5}
+                  invalidText="Tidak bisa di bawah 0"
+                />
+              </Column>
+              <Column>
+                <TextInput
+                  labelText="Labels"
+                  placeholder="pisahkan dengan koma ,"
+                  size="sm"
+                  fluid
+                  bind:value={item.labels}
+                />
+              </Column>
+            </Row>
+          </Grid>
+        </Box>
+      {/each}
     </Box>
   {/if}
 {/snippet}
@@ -158,14 +167,14 @@
 {@render renderDaftarItems()}
 
 <Box fill="field" padding={4} marginY={4}>
-<ButtonSet>
-  <Button icon={Add} on:click={() => {
-    items.push({ "id_bmhp": "", "jumlah": 1, "no_batch": "", "tgl_expired": "", "harga_satuan": 0 });
-  }} />
-  <Button icon={Subtract} on:click={() => {
-    items.pop();
-  }} />
-</ButtonSet>
+  <ButtonSet>
+    <Button icon={Add} on:click={() => {
+      items.push({ "id_bmhp": "", "jumlah": 1, "no_batch": "", "tgl_expired": "", "harga_satuan": 0, "labels": "" });
+    }} />
+    <Button kind="secondary" icon={Subtract} on:click={() => {
+      items.pop();
+    }} />
+  </ButtonSet>
 </Box>
 
 <style>
