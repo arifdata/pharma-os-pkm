@@ -18,6 +18,8 @@
   import { Indonesian } from "flatpickr/dist/l10n/id";
   import { Add, Subtract, RenewAlt } from "carbon-icons-svelte";
   import { pb } from "../../../pb/client.svelte";
+  import { notif } from "../../../lib/notif.svelte";
+  import { TambahBukuPenerimaanSchema } from "../../../validation-schema";
 
   /** @type {{id_bmhp:string}[]} */
   let items = $state([]);
@@ -174,6 +176,31 @@
     <Button kind="secondary" icon={Subtract} on:click={() => {
       items.pop();
     }} />
+    {#if (items.length > 0)}
+      <Button kind="primary" on:click={() => {
+        const formData = {
+          no_surat: nomorSurat,
+          sumber: sumberBarang,
+          tgl_terima: tanggalTerima,
+          daftar_item: items,
+
+        };
+        const submit = TambahBukuPenerimaanSchema.safeParse(formData);
+        if (!submit.success) {
+          for (const err of submit.error.issues) {
+            notif.add({
+              kind: "error",
+              title: err.message,
+              timeout: 3000,
+            });
+          }
+        } else {
+          console.log("proses input data")
+        }
+      }}>Submit</Button>
+    {:else}
+      <Button kind="primary" disabled>Submit</Button>
+    {/if}
   </ButtonSet>
 </Box>
 
