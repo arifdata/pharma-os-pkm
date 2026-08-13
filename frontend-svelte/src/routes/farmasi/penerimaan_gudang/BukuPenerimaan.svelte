@@ -14,7 +14,8 @@
     Grid,
     Row,
     Text,
-    Modal
+    Modal,
+    Loading
   } from "carbon-components-svelte";
   import { Indonesian } from "flatpickr/dist/l10n/id";
   import { Add, Subtract, RenewAlt } from "carbon-icons-svelte";
@@ -30,6 +31,7 @@
   /** @type {{id:string, name:string}[]} */
   let masterBMHP = $state([]);
   let confirmSubmitModal = $state(false);
+  let isLoading = $state(false);
 
   async function fetchMasterBMHP() {
     try {
@@ -63,12 +65,39 @@
         });
       }
     } else {
-      prosesPenerimaan();
+      prosesPenerimaan(submit.data);
     }
   }
 
-  function prosesPenerimaan() {
-    console.log("proses penerimaan")
+  async function prosesPenerimaan(data) {
+    isLoading = true;
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      /** @type {Record<string, string>} */
+      const mapLabels = {};
+      /** @type {string[]} */
+      const relasiLabels = [];
+
+      const currentLabels = await pb.collection("penerimaan_gudang_labels").getFullList();
+      for (const label of currentLabels) {
+        mapLabels[label["label"]] = label["id"];
+      }
+
+      for (const labels of data['daftar_item']) {
+        const arrInputLabels = labels['labels'].split(",");
+        for (const inputLabel of arrInputLabels) {
+          if (!Object.hasOwn(mapLabels, inputLabel)) {
+            const record = await pb.collection("penerimaan_gudang_labels").create({ label: inputLabel });
+            mapLabels[inputLabel] = record["id"];
+          }
+          relasiLabels.push(mapLabels[inputLabel]);
+        }
+      }
+
+      //this is not done yet, i just want to commit
+    } finally {
+      isLoading = false;
+    }
   }
 
   onMount(() => {
@@ -91,6 +120,8 @@
   }
 
 </script>
+
+<Loading bind:active={isLoading} />
 
 {#snippet renderDaftarItems()}
   {#if items.length > 0}
