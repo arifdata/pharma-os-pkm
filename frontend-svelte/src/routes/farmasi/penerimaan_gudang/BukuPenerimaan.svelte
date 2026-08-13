@@ -13,7 +13,8 @@
     Column,
     Grid,
     Row,
-    Text
+    Text,
+    Modal
   } from "carbon-components-svelte";
   import { Indonesian } from "flatpickr/dist/l10n/id";
   import { Add, Subtract, RenewAlt } from "carbon-icons-svelte";
@@ -23,12 +24,12 @@
 
   /** @type {{id_bmhp:string}[]} */
   let items = $state([]);
-  $inspect(items);
   let nomorSurat = $state("");
   let sumberBarang = $state("");
   let tanggalTerima = $state("");
   /** @type {{id:string, name:string}[]} */
   let masterBMHP = $state([]);
+  let confirmSubmitModal = $state(false);
 
   async function fetchMasterBMHP() {
     try {
@@ -42,6 +43,32 @@
     } catch (e) {
       console.error("Gagal fetch master_bmhp:", e);
     }
+  }
+
+  function submitPenerimaan(){
+    const formData = {
+      no_surat: nomorSurat,
+      sumber: sumberBarang,
+      tgl_terima: tanggalTerima,
+      daftar_item: items,
+
+    };
+    const submit = TambahBukuPenerimaanSchema.safeParse(formData);
+    if (!submit.success) {
+      for (const err of submit.error.issues) {
+        notif.add({
+          kind: "error",
+          title: err.message,
+          timeout: 3000,
+        });
+      }
+    } else {
+      prosesPenerimaan()
+    }
+  }
+
+  function prosesPenerimaan() {
+    console.log("proses penerimaan")
   }
 
   onMount(() => {
@@ -177,32 +204,26 @@
       items.pop();
     }} />
     {#if (items.length > 0)}
-      <Button kind="primary" on:click={() => {
-        const formData = {
-          no_surat: nomorSurat,
-          sumber: sumberBarang,
-          tgl_terima: tanggalTerima,
-          daftar_item: items,
-
-        };
-        const submit = TambahBukuPenerimaanSchema.safeParse(formData);
-        if (!submit.success) {
-          for (const err of submit.error.issues) {
-            notif.add({
-              kind: "error",
-              title: err.message,
-              timeout: 3000,
-            });
-          }
-        } else {
-          console.log("proses input data")
-        }
-      }}>Submit</Button>
+      <Button kind="primary" on:click={() => (confirmSubmitModal = true)}>Submit</Button>
     {:else}
       <Button kind="primary" disabled>Submit</Button>
     {/if}
   </ButtonSet>
 </Box>
+
+<Modal
+  size="xs"
+  bind:open={confirmSubmitModal}
+  primaryButtonText="Confirm"
+  secondaryButtonText="Cancel"
+  on:click:button--primary={() => {
+    submitPenerimaan();
+    confirmSubmitModal = false;
+  }}
+  on:click:button--secondary={() => (confirmSubmitModal = false)}
+>
+  <p>Lanjut memproses {items.length} item?</p>
+</Modal>
 
 <style>
   .label-text {
@@ -214,4 +235,3 @@
     line-height: 1rem;
   }
 </style>
-
