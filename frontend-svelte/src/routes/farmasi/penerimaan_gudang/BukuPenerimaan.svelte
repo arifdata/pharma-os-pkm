@@ -70,6 +70,7 @@
   }
 
   async function prosesPenerimaan(data) {
+    console.log(data);
     isLoading = true;
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -94,7 +95,36 @@
         }
       }
 
-      //this is not done yet, i just want to commit
+      const penerimaanGudangBody = {
+        "tanggal_terima": `${data['tgl_terima']} 00:00:00.000Z`,
+        "nomor_surat": data['no_surat'],
+        "sumber": data['sumber']
+      };
+      const newPenerimaanGudang = await pb.collection('penerimaan_gudang').create(penerimaanGudangBody);
+      const idPenerimaanGudang = newPenerimaanGudang['id'];
+
+      for (const item of data['daftar_item']) {
+
+        const itemLabels = [];
+        const splitLabels = item['labels'].split(",");
+        for (const label of splitLabels) {
+          itemLabels.push(mapLabels[label]);
+        }
+
+        const penerimaanGudangItemsBody = {
+          "penerimaan_gudang": idPenerimaanGudang,
+          "nama_bmhp": item['id_bmhp'],
+          "harga_satuan": item['harga_satuan'],
+          "jumlah": item['jumlah'],
+          "no_batch": item['no_batch'],
+          "tanggal_expired": item['tgl_expired'] === "" ? "" : `${item['tgl_expired']} 00:00:00.000Z`,
+          "labels": itemLabels
+        };
+
+        const newPenerimaanGudangItem = await pb.collection('penerimaan_gudang_items').create(penerimaanGudangItemsBody);
+        // at this point its already good, im gonna need to add some notification and cleaning up later. its time to commit
+      }
+
     } finally {
       isLoading = false;
     }
