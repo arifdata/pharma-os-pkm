@@ -17,6 +17,7 @@
 
   import { pb } from "../../../pb/client.svelte";
   import { notif } from "../../../lib/notif.svelte";
+  import { MasterBMHPSchema } from "../../../validation-schema";
 
   /** @type {any[]} */
   let allRows = $state([]);
@@ -93,8 +94,9 @@
    * @returns {Promise<{ok: boolean, msg: string}>}
    */
   async function addBMHP(item, input_tags) {
-    if (item == "" || input_tags == "") {
-      return {ok: false, msg: "Isian tidak boleh kosong"}
+    const submit = MasterBMHPSchema.safeParse({ nama_bmhp: item, labels: input_tags });
+    if (!submit.success) {
+      return { ok: false, msg: submit.error.issues[0].message };
     }
 
     const current_labels = await pb.collection('master_bmhp_labels').getFullList();
@@ -137,6 +139,14 @@
   }
 
   async function deleteBMHP() {
+    if (!deleteTargetId) {
+      notif.add({
+        kind: "error",
+        subtitle: "Target hapus tidak valid",
+        timeout: 3000,
+      });
+      return;
+    }
     await pb.collection("master_bmhp").delete(deleteTargetId);
     openDeleteModal = false;
     deleteTargetId = "";
@@ -159,10 +169,11 @@
   }
 
   async function submitEdit() {
-    if (editBMHPName === "" || editBMHPLabels === "") {
+    const submit = MasterBMHPSchema.safeParse({ nama_bmhp: editBMHPName, labels: editBMHPLabels });
+    if (!submit.success) {
       notif.add({
         kind: "error",
-        subtitle: "Isian tidak boleh kosong",
+        subtitle: submit.error.issues[0].message,
         timeout: 3000,
       });
       return;

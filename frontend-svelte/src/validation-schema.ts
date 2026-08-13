@@ -1,5 +1,16 @@
 import * as z from "zod";
 
+// Tambah Master BMHP Schema
+const NamaMasterBMHPSchema = z.string().min(1, "Nama BMHP tidak boleh kosong");
+
+const LabelMasterBMHPSchema = z.string();
+
+export const MasterBMHPSchema = z.object({
+	nama_bmhp: NamaMasterBMHPSchema,
+	labels: LabelMasterBMHPSchema,
+});
+
+// Tambah Buku Penerimaan Gudang Validation Schema
 const NomorSuratPenerimaanSchema = z.string();
 
 const SumberBarangPenerimaanSchema = z.string();
@@ -23,4 +34,3 @@ export const TambahBukuPenerimaanSchema = z.object({
 	tgl_terima: TanggalPenerimaanSchema,
 	daftar_item: DaftarItemPenerimaanSchema,
 });
-
