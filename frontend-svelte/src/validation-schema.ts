@@ -11,9 +11,9 @@ export const MasterBMHPSchema = z.object({
 });
 
 // Tambah Buku Penerimaan Gudang Validation Schema
-const NomorSuratPenerimaanSchema = z.string();
+const NomorSuratPenerimaanSchema = z.string().min(1, 'Isi nomor surat');
 
-const SumberBarangPenerimaanSchema = z.string();
+const SumberBarangPenerimaanSchema = z.string().min(1, 'Sumber harus diisi');
 
 const TanggalPenerimaanSchema = z.string().date();
 
