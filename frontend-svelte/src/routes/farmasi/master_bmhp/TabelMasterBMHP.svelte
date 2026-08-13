@@ -113,7 +113,7 @@
     const arr_input_labels = input_tags.split(",");
     for (const input_label of arr_input_labels) {
       if (!Object.hasOwn(map_labels, input_label)) {
-        const record = await pb.collection('master_bmhp_labels').create({ label: input_label });
+        const record = await pb.collection('master_bmhp_labels').create({ label: input_label.toLowerCase().trim().replaceAll(' ', '-') });
         map_labels[input_label] = record['id'];
       }
       relasi_labels.push(map_labels[input_label]);
@@ -192,7 +192,7 @@
     const arrInputLabels = editBMHPLabels.split(",");
     for (const inputLabel of arrInputLabels) {
       if (!Object.hasOwn(mapLabels, inputLabel)) {
-        const record = await pb.collection("master_bmhp_labels").create({ label: inputLabel });
+        const record = await pb.collection("master_bmhp_labels").create({ label: inputLabel.toLowerCase().trim().replaceAll(' ', '-') });
         mapLabels[inputLabel] = record["id"];
       }
       relasiLabels.push(mapLabels[inputLabel]);

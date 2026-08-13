@@ -3,7 +3,7 @@ import * as z from "zod";
 // Tambah Master BMHP Schema
 const NamaMasterBMHPSchema = z.string().min(1, "Nama BMHP tidak boleh kosong");
 
-const LabelMasterBMHPSchema = z.string();
+const LabelMasterBMHPSchema = z.string().toLowerCase().trim().transform((val) => val.replaceAll(" ", "-"));
 
 export const MasterBMHPSchema = z.object({
 	nama_bmhp: NamaMasterBMHPSchema,
@@ -21,7 +21,7 @@ const ItemPenerimaanSchema = z.object({
 	harga_satuan: z.number(),
 	id_bmhp: z.string().min(1, 'Nama BMHP tidak valid'),
 	jumlah: z.number(),
-	labels: z.string(),
+	labels: z.string().toLowerCase().trim(),
 	no_batch: z.string(),
 	tgl_expired: z.union([z.string(), z.string().date()]),
 });
