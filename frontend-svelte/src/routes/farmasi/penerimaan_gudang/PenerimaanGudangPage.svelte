@@ -1,6 +1,8 @@
 
 <script>
-  import BukuPenerimaan from "./BukuPenerimaan.svelte";
+  import { Button } from "carbon-components-svelte";
 </script>
 
-<BukuPenerimaan />
+<Button size="small" href="#/penerimaan_gudang/add">
+  Tambah Penerimaan
+</Button>

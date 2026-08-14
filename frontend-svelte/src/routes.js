@@ -10,6 +10,7 @@ import TestingPage from './routes/TestingPage.svelte'
 // Route Farmasi
 import MasterBMHPPage from './routes/farmasi/master_bmhp/MasterBMHPPage.svelte'
 import PenerimaanGudangPage from './routes/farmasi/penerimaan_gudang/PenerimaanGudangPage.svelte'
+import BukuPenerimaan from './routes/farmasi/penerimaan_gudang/BukuPenerimaan.svelte'
 
 // Example routes
 // import Name from './routes/Name.svelte'
@@ -24,6 +25,7 @@ export default {
 
     '/masterbmhp': MasterBMHPPage,
     '/penerimaan_gudang': PenerimaanGudangPage,
+    '/penerimaan_gudang/add': BukuPenerimaan,
 
     // '/data_pasien': DataPasienPage,
     // '/data_pasien/detail/:id': PasienDetailPage,
