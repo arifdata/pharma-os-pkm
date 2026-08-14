@@ -121,6 +121,19 @@
         };
 
         const newPenerimaanGudangItem = await pb.collection('penerimaan_gudang_items').create(penerimaanGudangItemsBody);
+
+        const inputStokPenerimaanGudang = {
+          id: newPenerimaanGudangItem['id'],
+          jumlah: newPenerimaanGudangItem['jumlah']
+        }
+
+        const createStokGudangBody = {
+          "item": inputStokPenerimaanGudang['id'],
+          "jumlah": inputStokPenerimaanGudang['jumlah']
+        };
+
+        const newCreateStokGudang = await pb.collection('stok_gudang').create(createStokGudangBody);
+
       }
 
       notif.add({
