@@ -70,7 +70,6 @@
   }
 
   async function prosesPenerimaan(data) {
-    console.log(data);
     isLoading = true;
     try {
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -122,10 +121,20 @@
         };
 
         const newPenerimaanGudangItem = await pb.collection('penerimaan_gudang_items').create(penerimaanGudangItemsBody);
-        // at this point its already good, im gonna need to add some notification and cleaning up later. its time to commit
       }
 
+      notif.add({
+        kind: "success",
+        title: "Item berhasil terinput.",
+        timeout: 3000,
+      });
+
     } finally {
+      items = [];
+      nomorSurat = "";
+      sumberBarang = "";
+      tanggalTerima = "";
+      masterBMHP = [];
       isLoading = false;
     }
   }
