@@ -64,7 +64,7 @@
     try {
       const records = await pb.collection("master_bmhp").getFullList({
         expand: "labels",
-        sort: "created",
+        sort: "nama_bmhp",
       });
       allRows = records.map((/** @type {any} */ r) => ({
         id: r.id,
@@ -99,7 +99,7 @@
       return { ok: false, msg: submit.error.issues[0].message };
     }
 
-    const current_labels = await pb.collection('master_bmhp_labels').getFullList();
+    const current_labels = await pb.collection('master_bmhp_labels').getFullList({});
 
     /** @type {Record<string, string>} */
     let map_labels = {};
