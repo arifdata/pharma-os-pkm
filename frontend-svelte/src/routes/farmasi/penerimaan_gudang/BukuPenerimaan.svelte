@@ -18,7 +18,7 @@
     Loading
   } from "carbon-components-svelte";
   import { Indonesian } from "flatpickr/dist/l10n/id";
-  import { Add, Subtract, RenewAlt } from "carbon-icons-svelte";
+  import { Add, Subtract, RenewAlt, TrashCan } from "carbon-icons-svelte";
   import { pb } from "../../../pb/client.svelte";
   import { notif } from "../../../lib/notif.svelte";
   import { TambahBukuPenerimaanSchema } from "../../../validation-schema";
@@ -180,7 +180,15 @@
     <Box fill="layer-01" padding={4} marginY={4}>
       <Text>Daftar Items:</Text>
       {#each items as item, idx (idx)}
-        <Box fill="layer-02" padding={4} marginY={4}>
+        <Box fill="layer-02" padding={4} marginY={4} style="position: relative;">
+          <Button
+            style="position: absolute; top: 0.5rem; right: 0.5rem; z-index: 1;"
+            kind="ghost"
+            size="small"
+            iconDescription="Hapus item"
+            tooltipPosition="left"
+            icon={TrashCan}
+          />
           <Grid>
             <Row style="align-items: flex-start; margin-bottom: 1rem;">
               {@const selectedName = masterBMHP.find(m => m.id === item.id_bmhp)?.name ?? ''}
