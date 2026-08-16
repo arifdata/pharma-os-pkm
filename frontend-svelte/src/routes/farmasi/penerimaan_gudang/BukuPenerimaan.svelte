@@ -18,7 +18,7 @@
     Loading
   } from "carbon-components-svelte";
   import { Indonesian } from "flatpickr/dist/l10n/id";
-  import { Add, Subtract, RenewAlt, TrashCan } from "carbon-icons-svelte";
+  import { Add, RenewAlt, TrashCan } from "carbon-icons-svelte";
   import { pb } from "../../../pb/client.svelte";
   import { notif } from "../../../lib/notif.svelte";
   import { TambahBukuPenerimaanSchema } from "../../../validation-schema";
@@ -188,6 +188,7 @@
             iconDescription="Hapus item"
             tooltipPosition="left"
             icon={TrashCan}
+            on:click={() => (items.splice(idx, 1))}
           />
           <Grid>
             <Row style="align-items: flex-start; margin-bottom: 1rem;">
@@ -290,9 +291,6 @@
   <ButtonSet>
     <Button icon={Add} on:click={() => {
       items.push({ "id_bmhp": "", "jumlah": 1, "no_batch": "", "tgl_expired": "", "harga_satuan": 0, "labels": "" });
-    }} />
-    <Button kind="secondary" icon={Subtract} on:click={() => {
-      items.pop();
     }} />
     {#if (items.length > 0)}
       <Button kind="primary" on:click={() => (confirmSubmitModal = true)}>Submit</Button>
