@@ -17,7 +17,7 @@ const SumberBarangPenerimaanSchema = z.string().min(1, 'Sumber harus diisi');
 
 const TanggalPenerimaanSchema = z.string().date();
 
-const ItemPenerimaanSchema = z.object({
+export const ItemPenerimaanSchema = z.object({
 	harga_satuan: z.number(),
 	id_bmhp: z.string().min(1, 'Nama BMHP tidak valid'),
 	jumlah: z.number(),

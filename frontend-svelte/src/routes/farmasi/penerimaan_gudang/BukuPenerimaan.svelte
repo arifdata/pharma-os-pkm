@@ -10,20 +10,20 @@
     SearchMenu,
     SearchMenuItem,
     NumberInput,
-    Column,
-    Grid,
-    Row,
     Text,
     Modal,
     Loading
   } from "carbon-components-svelte";
   import { Indonesian } from "flatpickr/dist/l10n/id";
-  import { Add, RenewAlt, TrashCan } from "carbon-icons-svelte";
+  import { Add, Edit, RenewAlt, TrashCan } from "carbon-icons-svelte";
   import { pb } from "../../../pb/client.svelte";
   import { notif } from "../../../lib/notif.svelte";
-  import { TambahBukuPenerimaanSchema } from "../../../validation-schema";
+  import {
+    TambahBukuPenerimaanSchema,
+    ItemPenerimaanSchema,
+  } from "../../../validation-schema";
 
-  /** @type {{id_bmhp:string}[]} */
+  /** @type {{id_bmhp:string,jumlah:number,no_batch:string,tgl_expired:string,harga_satuan:number,labels:string}[]} */
   let items = $state([]);
   let nomorSurat = $state("");
   let sumberBarang = $state("");
@@ -32,6 +32,49 @@
   let masterBMHP = $state([]);
   let confirmSubmitModal = $state(false);
   let isLoading = $state(false);
+
+  // --- modal tambah/edit item ---
+  const emptyItem = () => ({
+    id_bmhp: "",
+    jumlah: 1,
+    no_batch: "",
+    tgl_expired: "",
+    harga_satuan: 0,
+    labels: "",
+  });
+  let itemModalOpen = $state(false);
+  /** @type {number|null} null = tambah baru, number = index edit */
+  let editingIndex = $state(null);
+  let draftItem = $state(emptyItem());
+
+  function openAddItem() {
+    editingIndex = null;
+    draftItem = emptyItem();
+    itemModalOpen = true;
+  }
+
+  /** @param {number} idx */
+  function openEditItem(idx) {
+    editingIndex = idx;
+    draftItem = { ...items[idx] };
+    itemModalOpen = true;
+  }
+
+  function simpanItem() {
+    const parsed = ItemPenerimaanSchema.safeParse(draftItem);
+    if (!parsed.success) {
+      for (const err of parsed.error.issues) {
+        notif.add({ kind: "error", title: err.message, timeout: 3000 });
+      }
+      return;
+    }
+    if (editingIndex === null) {
+      items.push({ ...draftItem });
+    } else {
+      items[editingIndex] = { ...draftItem };
+    }
+    itemModalOpen = false;
+  }
 
   async function fetchMasterBMHP() {
     try {
@@ -69,6 +112,7 @@
     }
   }
 
+  /** @param {import("zod").infer<typeof TambahBukuPenerimaanSchema>} data */
   async function prosesPenerimaan(data) {
     isLoading = true;
     try {
@@ -190,75 +234,26 @@
             icon={TrashCan}
             on:click={() => (items.splice(idx, 1))}
           />
-          <Grid>
-            <Row style="align-items: flex-start; margin-bottom: 1rem;">
-              {@const selectedName = masterBMHP.find(m => m.id === item.id_bmhp)?.name ?? ''}
-              <div class="label-text">{idx+1}</div>
-              <SearchMenu
-                placeholder="Search Nama BMHP..."
-                size="sm"
-                value={selectedName}
-                on:select={(e) => {
-                  item.id_bmhp = e.detail.value;
-                }}
-                on:clear={() => {
-                  item.id_bmhp = '';
-                }}
-              >
-                {#each masterBMHP as bmhp (bmhp.id)}
-                  <SearchMenuItem
-                    text={bmhp.name}
-                    value={bmhp.id}
-                  />
-                {/each}
-              </SearchMenu>
-            </Row>
-            <Row noGutterLeft>
-              <Column>
-                <NumberInput
-                  labelText="Jumlah"
-                  size="sm"
-                  fluid
-                  bind:value={item.jumlah}
-                  min={1}
-                  invalidText="Tidak bisa di bawah 1"
-                />
-              </Column>
-              <Column>
-                <TextInput
-                  labelText="Nomor Batch"
-                  size="sm"
-                  fluid
-                  bind:value={item.no_batch}
-                />
-              </Column>
-              <Column>
-                <DatePicker fluid datePickerType="single" locale={Indonesian} dateFormat="Y-m-d" on:change bind:value={item.tgl_expired}>
-                  <DatePickerInput labelText="Tanggal Expired" placeholder="yyyy-mm-dd" />
-                </DatePicker>
-              </Column>
-              <Column>
-                <NumberInput
-                  labelText="Harga Satuan (Rp.)"
-                  size="sm"
-                  fluid
-                  bind:value={item.harga_satuan}
-                  min={0}
-                  step={0.5}
-                  invalidText="Tidak bisa di bawah 0"
-                />
-              </Column>
-              <Column>
-                <TextInput
-                  labelText="Labels"
-                  placeholder="pisahkan dengan koma ,"
-                  size="sm"
-                  fluid
-                  bind:value={item.labels}
-                />
-              </Column>
-            </Row>
-          </Grid>
+          <Button
+            style="position: absolute; top: 0.5rem; right: 2.75rem; z-index: 1;"
+            kind="ghost"
+            size="small"
+            iconDescription="Edit item"
+            tooltipPosition="left"
+            icon={Edit}
+            on:click={() => openEditItem(idx)}
+          />
+          {@const nama = masterBMHP.find((m) => m.id === item.id_bmhp)?.name ?? "(belum dipilih)"}
+          <div class="item-summary">
+            <div class="item-title">{idx + 1}. {nama}</div>
+            <div class="item-meta">
+              <span>Jumlah: {item.jumlah}</span>
+              <span>Batch: {item.no_batch || "-"}</span>
+              <span>Exp: {item.tgl_expired || "-"}</span>
+              <span>Harga: Rp. {item.harga_satuan}</span>
+              <span>Labels: {item.labels || "-"}</span>
+            </div>
+          </div>
         </Box>
       {/each}
     </Box>
@@ -289,9 +284,7 @@
 
 <Box fill="field" padding={4} marginY={4}>
   <ButtonSet>
-    <Button icon={Add} on:click={() => {
-      items.push({ "id_bmhp": "", "jumlah": 1, "no_batch": "", "tgl_expired": "", "harga_satuan": 0, "labels": "" });
-    }} />
+    <Button icon={Add} iconDescription="Tambah item" tooltipPosition="right" on:click={openAddItem} />
     {#if (items.length > 0)}
       <Button kind="primary" on:click={() => (confirmSubmitModal = true)}>Submit</Button>
     {:else}
@@ -299,6 +292,63 @@
     {/if}
   </ButtonSet>
 </Box>
+
+<Modal
+  size="lg"
+  bind:open={itemModalOpen}
+  primaryButtonText={editingIndex === null ? "Tambah Item" : "Simpan Item"}
+  secondaryButtonText="Batal"
+  on:click:button--primary={simpanItem}
+  on:click:button--secondary={() => (itemModalOpen = false)}
+>
+  <div class="item-modal-form">
+    <div>
+      <div class="field-label">Nama BMHP</div>
+      <SearchMenu
+        placeholder="Search Nama BMHP..."
+        size="sm"
+        value={masterBMHP.find((m) => m.id === draftItem.id_bmhp)?.name ?? ""}
+        on:select={(e) => (draftItem.id_bmhp = e.detail.value)}
+        on:clear={() => (draftItem.id_bmhp = "")}
+      >
+        {#each masterBMHP as bmhp (bmhp.id)}
+          <SearchMenuItem text={bmhp.name} value={bmhp.id} />
+        {/each}
+      </SearchMenu>
+    </div>
+    <NumberInput
+      labelText="Jumlah"
+      size="sm"
+      bind:value={draftItem.jumlah}
+      min={1}
+      invalidText="Tidak bisa di bawah 1"
+    />
+    <TextInput labelText="Nomor Batch" size="sm" bind:value={draftItem.no_batch} />
+    <DatePicker
+      datePickerType="single"
+      locale={Indonesian}
+      dateFormat="Y-m-d"
+      on:change
+      bind:value={draftItem.tgl_expired}
+    >
+      <DatePickerInput labelText="Tanggal Expired" placeholder="yyyy-mm-dd" />
+    </DatePicker>
+    <NumberInput
+      labelText="Harga Satuan (Rp.)"
+      size="sm"
+      bind:value={draftItem.harga_satuan}
+      min={0}
+      step={0.5}
+      invalidText="Tidak bisa di bawah 0"
+    />
+    <TextInput
+      labelText="Labels"
+      placeholder="pisahkan dengan koma ,"
+      size="sm"
+      bind:value={draftItem.labels}
+    />
+  </div>
+</Modal>
 
 <Modal
   size="xs"
@@ -315,12 +365,38 @@
 </Modal>
 
 <style>
-  .label-text {
-    margin-top: 0.55rem;
+  .item-modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .field-label {
     font-size: 0.75rem;
-    font-weight: 400;
+    line-height: 1rem;
+    letter-spacing: 0.32px;
     color: var(--cds-text-secondary, #525252);
     margin-bottom: 0.5rem;
+  }
+
+  .item-summary {
+    padding-right: 6rem;
+  }
+
+  .item-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    color: var(--cds-text-primary, #161616);
+    margin-bottom: 0.5rem;
+  }
+
+  .item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.5rem;
+    font-size: 0.75rem;
     line-height: 1rem;
+    color: var(--cds-text-secondary, #525252);
   }
 </style>
