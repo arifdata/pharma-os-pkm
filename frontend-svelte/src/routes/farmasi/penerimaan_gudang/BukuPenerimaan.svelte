@@ -1,5 +1,4 @@
 <script>
-  import { onMount } from "svelte";
   import {
     Box,
     Button,
@@ -30,6 +29,14 @@
   let tanggalTerima = $state("");
   /** @type {{id:string, name:string}[]} */
   let masterBMHP = $state([]);
+  // saran BMHP hanya diambil saat user mengetik (server-side search)
+  let bmhpQuery = $state("");
+  let bmhpLoading = $state(false);
+  /** @type {ReturnType<typeof setTimeout>|undefined} */
+  let bmhpDebounce;
+  let bmhpRequestId = 0;
+  /** @type {Map<string,string>} cache id -> nama, dipakai untuk menampilkan item terpilih */
+  const bmhpNames = new Map();
   let confirmSubmitModal = $state(false);
   let isLoading = $state(false);
 
@@ -50,6 +57,8 @@
   function openAddItem() {
     editingIndex = null;
     draftItem = emptyItem();
+    masterBMHP = [];
+    bmhpQuery = "";
     itemModalOpen = true;
   }
 
@@ -57,6 +66,8 @@
   function openEditItem(idx) {
     editingIndex = idx;
     draftItem = { ...items[idx] };
+    masterBMHP = [];
+    bmhpQuery = "";
     itemModalOpen = true;
   }
 
@@ -76,18 +87,52 @@
     itemModalOpen = false;
   }
 
-  async function fetchMasterBMHP() {
+  /** @param {string} query */
+  async function fetchMasterBMHP(query) {
+    const q = query.trim();
+    const requestId = ++bmhpRequestId;
+    if (q === "") {
+      masterBMHP = [];
+      bmhpLoading = false;
+      return;
+    }
+    bmhpLoading = true;
     try {
-      const records = await pb.collection("master_bmhp").getFullList({
+      const records = await pb.collection("master_bmhp").getList(1, 20, {
+        filter: pb.filter("nama_bmhp ~ {:q}", { q }),
         sort: "nama_bmhp",
       });
-      masterBMHP = records.map((r) => ({
-        id: r.id,
-        name: r.nama_bmhp,
-      }));
+      if (requestId !== bmhpRequestId) return;
+      masterBMHP = records.items.map((r) => {
+        bmhpNames.set(r.id, r.nama_bmhp);
+        return { id: r.id, name: r.nama_bmhp };
+      });
     } catch (e) {
       console.error("Gagal fetch master_bmhp:", e);
+    } finally {
+      if (requestId === bmhpRequestId) bmhpLoading = false;
     }
+  }
+
+  /** @param {string} query */
+  function onBmhpSearch(query) {
+    bmhpQuery = query;
+    clearTimeout(bmhpDebounce);
+    bmhpDebounce = setTimeout(() => fetchMasterBMHP(query), 250);
+  }
+
+  /** @param {string} id */
+  function namaBMHP(id) {
+    return bmhpNames.get(id) ?? "(belum dipilih)";
+  }
+
+  /** @param {string} id */
+  function onBmhpSelect(id) {
+    const selected = masterBMHP.find((m) => m.id === id);
+    if (selected) bmhpNames.set(selected.id, selected.name);
+    draftItem.id_bmhp = id;
+    bmhpQuery = "";
+    masterBMHP = [];
   }
 
   function submitPenerimaan(){
@@ -191,14 +236,9 @@
       nomorSurat = "";
       sumberBarang = "";
       tanggalTerima = "";
-      masterBMHP = [];
       isLoading = false;
     }
   }
-
-  onMount(() => {
-    fetchMasterBMHP();
-  });
 
   function generateNomorSurat() {
     const date = new Date();
@@ -243,9 +283,8 @@
             icon={Edit}
             on:click={() => openEditItem(idx)}
           />
-          {@const nama = masterBMHP.find((m) => m.id === item.id_bmhp)?.name ?? "(belum dipilih)"}
           <div class="item-summary">
-            <div class="item-title">{idx + 1}. {nama}</div>
+            <div class="item-title">{idx + 1}. {namaBMHP(item.id_bmhp)}</div>
             <div class="item-meta">
               <span>Jumlah: {item.jumlah}</span>
               <span>Batch: {item.no_batch || "-"}</span>
@@ -305,16 +344,23 @@
     <div>
       <div class="field-label">Nama BMHP</div>
       <SearchMenu
-        placeholder="Search Nama BMHP..."
+        placeholder="Ketik untuk cari Nama BMHP..."
         size="sm"
-        value={masterBMHP.find((m) => m.id === draftItem.id_bmhp)?.name ?? ""}
-        on:select={(e) => (draftItem.id_bmhp = e.detail.value)}
-        on:clear={() => (draftItem.id_bmhp = "")}
+        value={bmhpQuery}
+        shouldFilter={false}
+        loading={bmhpLoading}
+        on:input={(/** @type {any} */ e) => onBmhpSearch(e.target?.value ?? "")}
+        on:select={(e) => onBmhpSelect(e.detail.value)}
+        on:clear={() => onBmhpSearch("")}
       >
         {#each masterBMHP as bmhp (bmhp.id)}
           <SearchMenuItem text={bmhp.name} value={bmhp.id} />
         {/each}
+        <div slot="noResults" class="suggestion-hint">Ketik nama BMHP untuk mencari</div>
       </SearchMenu>
+      {#if draftItem.id_bmhp}
+        <Text size="sm">Dipilih: {namaBMHP(draftItem.id_bmhp)}</Text>
+      {/if}
     </div>
     <NumberInput
       labelText="Jumlah"
@@ -377,6 +423,12 @@
     letter-spacing: 0.32px;
     color: var(--cds-text-secondary, #525252);
     margin-bottom: 0.5rem;
+  }
+
+  .suggestion-hint {
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    color: var(--cds-text-secondary, #525252);
   }
 
   .item-summary {
