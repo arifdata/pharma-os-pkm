@@ -89,6 +89,44 @@
   }
 
   /**
+   * Normalisasi label ke bentuk yang disimpan di master_bmhp_labels.
+   * @param {string} label
+   * @returns {string}
+   */
+  function normalizeLabel(label) {
+    return label.toLowerCase().trim().replaceAll(" ", "-");
+  }
+
+  /**
+   * Ambil id label dari master_bmhp_labels; buat hanya jika belum ada.
+   * @param {string[]} labels
+   * @returns {Promise<string[]>} daftar id label (unik)
+   */
+  async function resolveLabelIds(labels) {
+    const normalized = labels.map(normalizeLabel).filter((l) => l !== "");
+    if (normalized.length === 0) return [];
+
+    const currentLabels = await pb.collection("master_bmhp_labels").getFullList();
+
+    /** @type {Record<string, string>} */
+    const mapLabels = {};
+    for (const label of currentLabels) {
+      mapLabels[normalizeLabel(label["label"])] = label["id"];
+    }
+
+    /** @type {Set<string>} */
+    const ids = new Set();
+    for (const label of normalized) {
+      if (!Object.hasOwn(mapLabels, label)) {
+        const record = await pb.collection("master_bmhp_labels").create({ label });
+        mapLabels[label] = record["id"];
+      }
+      ids.add(mapLabels[label]);
+    }
+    return [...ids];
+  }
+
+  /**
    * @param {string} item
    * @param {string} input_tags
    * @returns {Promise<{ok: boolean, msg: string}>}
@@ -99,25 +137,7 @@
       return { ok: false, msg: submit.error.issues[0].message };
     }
 
-    const current_labels = await pb.collection('master_bmhp_labels').getFullList({});
-
-    /** @type {Record<string, string>} */
-    let map_labels = {};
-    /** @type {string[]} */
-    let relasi_labels = [];
-
-    for (const label of current_labels) {
-      map_labels[label['label']] = label['id'];
-    }
-
-    const arr_input_labels = input_tags.split(",");
-    for (const input_label of arr_input_labels) {
-      if (!Object.hasOwn(map_labels, input_label)) {
-        const record = await pb.collection('master_bmhp_labels').create({ label: input_label.toLowerCase().trim().replaceAll(' ', '-') });
-        map_labels[input_label] = record['id'];
-      }
-      relasi_labels.push(map_labels[input_label]);
-    }
+    const relasi_labels = await resolveLabelIds(input_tags.split(","));
 
     const record = await pb.collection('master_bmhp').create({
       nama_bmhp: item,
@@ -179,24 +199,7 @@
       return;
     }
 
-    /** @type {Record<string, string>} */
-    const mapLabels = {};
-    /** @type {string[]} */
-    const relasiLabels = [];
-
-    const currentLabels = await pb.collection("master_bmhp_labels").getFullList();
-    for (const label of currentLabels) {
-      mapLabels[label["label"]] = label["id"];
-    }
-
-    const arrInputLabels = editBMHPLabels.split(",");
-    for (const inputLabel of arrInputLabels) {
-      if (!Object.hasOwn(mapLabels, inputLabel)) {
-        const record = await pb.collection("master_bmhp_labels").create({ label: inputLabel.toLowerCase().trim().replaceAll(' ', '-') });
-        mapLabels[inputLabel] = record["id"];
-      }
-      relasiLabels.push(mapLabels[inputLabel]);
-    }
+    const relasiLabels = await resolveLabelIds(editBMHPLabels.split(","));
 
     await pb.collection("master_bmhp").update(editTargetId, {
       nama_bmhp: editBMHPName,
