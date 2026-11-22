@@ -10,6 +10,11 @@ export const MasterBMHPSchema = z.object({
 	labels: LabelMasterBMHPSchema,
 });
 
+// Tambah Subunit Validation Schema
+export const SubunitSchema = z.object({
+	subunit: z.string().trim().min(1, "Nama subunit tidak boleh kosong"),
+});
+
 // Tambah Buku Penerimaan Gudang Validation Schema
 const NomorSuratPenerimaanSchema = z.string().min(1, 'Isi nomor surat');
 

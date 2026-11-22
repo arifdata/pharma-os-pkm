@@ -90,6 +90,7 @@
         <SideNavMenuItem href="#/penerimaan_gudang" text="Penerimaan Gudang" />
         <SideNavMenuItem href="#/stok_gudang" text="Stok Gudang" />
         <SideNavMenuItem href="#/masterbmhp" text="Master BMHP" />
+        <SideNavMenuItem href="#/subunit" text="Subunit" />
       </SideNavMenu>
       <SideNavDivider />
       <SideNavLink text="Testing Page" href="#/testing"/>
