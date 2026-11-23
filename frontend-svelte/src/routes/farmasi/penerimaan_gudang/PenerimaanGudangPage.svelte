@@ -112,6 +112,21 @@
         </Button>
       </ToolbarContent>
     </Toolbar>
+    <svelte:fragment slot="cell" let:row let:cell>
+      {#if cell.key === "nomor_surat"}
+        <a
+          class="detail-link"
+          href="#/penerimaan_gudang/{row.id}"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Buka detail item penerimaan"
+        >
+          {cell.value}
+        </a>
+      {:else}
+        {cell.value}
+      {/if}
+    </svelte:fragment>
   </DataTable>
   <Pagination
     bind:page={currentPage}
@@ -127,5 +142,14 @@
   .error {
     color: var(--cds-text-error, #da1e28);
     padding: 1rem;
+  }
+
+  .detail-link {
+    color: var(--cds-link-primary, #0f62fe);
+    text-decoration: none;
+  }
+
+  .detail-link:hover {
+    text-decoration: underline;
   }
 </style>

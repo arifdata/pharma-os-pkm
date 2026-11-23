@@ -17,6 +17,6 @@
   ...
 {:then data}
   {#each data as item}
-    {item.expand.item.expand.nama_bmhp.nama_bmhp}: {item.jumlah}<br>
+    {item.expand?.["item"]?.expand?.["nama_bmhp"]?.nama_bmhp}: {item.jumlah}<br>
   {/each}
 {/await}
