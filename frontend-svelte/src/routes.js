@@ -12,6 +12,7 @@ import MasterBMHPPage from './routes/farmasi/master_bmhp/MasterBMHPPage.svelte'
 import PenerimaanGudangPage from './routes/farmasi/penerimaan_gudang/PenerimaanGudangPage.svelte'
 import DetailPenerimaanGudangPage from './routes/farmasi/penerimaan_gudang/DetailPenerimaanGudangPage.svelte'
 import StokGudangPage from './routes/farmasi/StokGudangPage.svelte'
+import DistribusiGudangPage from './routes/farmasi/distribusi_gudang/DistribusiGudangPage.svelte'
 import BukuPenerimaan from './routes/farmasi/penerimaan_gudang/BukuPenerimaan.svelte'
 import SubunitPage from './routes/farmasi/subunit/SubunitPage.svelte'
 
@@ -30,6 +31,7 @@ export default {
     '/penerimaan_gudang/add': BukuPenerimaan,
     '/penerimaan_gudang/:id': DetailPenerimaanGudangPage,
     '/stok_gudang': StokGudangPage,
+    '/distribusi_gudang': DistribusiGudangPage,
     '/masterbmhp': MasterBMHPPage,
     '/subunit': SubunitPage,
 

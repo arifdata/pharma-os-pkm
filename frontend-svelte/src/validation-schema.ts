@@ -39,3 +39,10 @@ export const TambahBukuPenerimaanSchema = z.object({
 	tgl_terima: TanggalPenerimaanSchema,
 	daftar_item: DaftarItemPenerimaanSchema,
 });
+
+// Distribusi Gudang Validation Schema
+export const DistribusiItemSchema = z.object({
+	tujuan: z.string().min(1, "Subunit tujuan tidak valid"),
+	jumlah: z.number().int().min(1, "Jumlah minimal 1"),
+	tanggal_distribusi: TanggalPenerimaanSchema,
+});
