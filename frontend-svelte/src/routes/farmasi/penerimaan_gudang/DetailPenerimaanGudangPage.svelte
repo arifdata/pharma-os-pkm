@@ -151,7 +151,7 @@
     </div>
   </div>
 
-  <DataTable title="Item Penerimaan" size="short" {headers} {rows}>
+  <DataTable title="Item Penerimaan" {headers} {rows}>
     <Toolbar>
       <ToolbarContent>
         <Button

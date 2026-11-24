@@ -97,7 +97,7 @@
 {:else if error !== ""}
   <p class="error">{error}</p>
 {:else}
-  <DataTable title="Penerimaan Gudang" size="short" {headers} {rows}>
+  <DataTable title="Penerimaan Gudang" {headers} {rows}>
     <Toolbar>
       <ToolbarContent>
         <Button
