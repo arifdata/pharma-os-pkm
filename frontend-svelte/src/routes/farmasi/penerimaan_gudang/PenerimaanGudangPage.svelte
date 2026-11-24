@@ -107,9 +107,12 @@
           disabled={reloading}
           on:click={reload}
         />
-        <Button size="small" icon={Add} href="#/penerimaan_gudang/add">
-          Tambah Penerimaan
-        </Button>
+        <Button
+          icon={Add}
+          iconDescription="Tambah Penerimaan"
+          tooltipPosition="top"
+          href="#/penerimaan_gudang/add"
+        />
       </ToolbarContent>
     </Toolbar>
     <svelte:fragment slot="cell" let:row let:cell>
