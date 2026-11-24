@@ -196,7 +196,7 @@
     gap: 1rem;
     padding: 1rem;
     margin-bottom: 1rem;
-    background: var(--cds-layer-01, #f4f4f4);
+    background: var(--cds-layer, #f4f4f4);
   }
 
   .header-grid .label {
