@@ -63,3 +63,10 @@ export const DataPasienSchema = z.object({
 export const DataPeresepSchema = z.object({
 	nama_peresep: z.string().trim().toLowerCase().min(1, "Nama peresep tidak boleh kosong"),
 });
+
+// Data Diagnosa Validation Schema — disimpan apa adanya (tanpa ubah kapitalisasi)
+export const DataDiagnosaSchema = z.object({
+	nama_diagnosa: z
+		.string()
+		.refine((val) => val.trim().length > 0, "Nama diagnosa tidak boleh kosong"),
+});

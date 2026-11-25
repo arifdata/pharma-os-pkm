@@ -90,6 +90,7 @@
       <SideNavMenu text="Pendaftaran" expanded={true} icon={User}>
         <SideNavMenuItem href="#/data_pasien" text="Data Pasien" />
         <SideNavMenuItem href="#/data_peresep" text="Data Peresep" />
+        <SideNavMenuItem href="#/data_diagnosa" text="Data Diagnosa" />
       </SideNavMenu>
       <SideNavMenu text="Farmasi" expanded={true} icon={Medication}>
         <SideNavMenuItem href="#/penerimaan_gudang" text="Penerimaan Gudang" />
