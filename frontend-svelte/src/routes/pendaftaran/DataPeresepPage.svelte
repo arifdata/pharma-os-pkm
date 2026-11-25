@@ -9,7 +9,6 @@
     TextInput,
     Toolbar,
     ToolbarContent,
-    ToolbarSearch,
   } from "carbon-components-svelte";
   import { Renew, Add, TrashCan, Edit } from "carbon-icons-svelte";
 
@@ -21,7 +20,6 @@
   let allRows = $state([]);
   let loading = $state(true);
   let error = $state("");
-  let searchTerm = $state("");
   let reloading = $state(false);
   let currentPage = $state(1);
   let pageSize = $state(10);
@@ -42,18 +40,8 @@
     { key: "actions", value: "Actions" },
   ];
 
-  let rows = $derived(
-    searchTerm.trim() === ""
-      ? allRows
-      : allRows.filter((r) =>
-          String(r.nama_peresep ?? "")
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase())
-        )
-  );
-
   $effect(() => {
-    rows;
+    allRows;
     currentPage = 1;
   });
 
@@ -178,19 +166,13 @@
     title="Data Peresep"
     size="short"
     {headers}
-    {rows}
+    rows={allRows}
     {pageSize}
     page={currentPage}
     sortable
   >
     <Toolbar>
       <ToolbarContent>
-        <ToolbarSearch
-          bind:value={searchTerm}
-          on:clear={() => (searchTerm = "")}
-          placeholder="Cari nama peresep"
-          persistent
-        />
         <Button
           icon={Renew}
           iconDescription="Reload Data"
@@ -235,7 +217,7 @@
   <Pagination
     bind:page={currentPage}
     bind:pageSize
-    totalItems={rows.length}
+    totalItems={allRows.length}
     pageSizes={[5, 10, 20, 50]}
     size="sm"
   />
