@@ -68,8 +68,7 @@
           const q = searchTerm.toLowerCase();
           return (
             String(r.nomor_kartu ?? "").toLowerCase().includes(q) ||
-            String(r.nama_pasien ?? "").toLowerCase().includes(q) ||
-            String(r.alamat ?? "").toLowerCase().includes(q)
+            String(r.nama_pasien ?? "").toLowerCase().includes(q)
           );
         })
   );
@@ -268,6 +267,7 @@
         <ToolbarSearch
           bind:value={searchTerm}
           on:clear={() => (searchTerm = "")}
+          placeholder="Cari nama pasien atau no. kartu"
           persistent
         />
         <Button
