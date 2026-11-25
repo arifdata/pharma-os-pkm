@@ -55,9 +55,7 @@
     { key: "nomor_kartu", value: "No. Kartu" },
     { key: "nama_pasien", value: "Nama Pasien", width: "25%" },
     { key: "alamat", value: "Alamat", width: "25%" },
-    { key: "tanggal_lahir", value: "Tanggal Lahir" },
     { key: "umur", value: "Umur" },
-    { key: "nomor_telepon", value: "No. Telepon" },
     { key: "actions", value: "Actions" },
   ];
 
@@ -249,7 +247,7 @@
 </script>
 
 {#if loading}
-  <DataTableSkeleton columns={7} rows={5} headers={headers} />
+  <DataTableSkeleton columns={5} rows={5} headers={headers} />
 {:else if error !== ""}
   <p class="error">{error}</p>
 {:else}
