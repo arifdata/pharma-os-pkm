@@ -56,6 +56,7 @@
     { key: "nama_pasien", value: "Nama Pasien", width: "25%" },
     { key: "alamat", value: "Alamat", width: "25%" },
     { key: "tanggal_lahir", value: "Tanggal Lahir" },
+    { key: "umur", value: "Umur" },
     { key: "nomor_telepon", value: "No. Telepon" },
     { key: "actions", value: "Actions" },
   ];
@@ -84,6 +85,29 @@
     return String(value).slice(0, 10);
   }
 
+  /**
+   * Selisih bulan penuh antara tanggal lahir dan sekarang, format "XX Tahun XX Bulan".
+   * @param {string} tanggalLahir format YYYY-MM-DD
+   * @returns {string}
+   */
+  function hitungUmur(tanggalLahir) {
+    if (!tanggalLahir) return "-";
+    const lahir = new Date(`${toDateInput(tanggalLahir)}T00:00:00`);
+    if (Number.isNaN(lahir.getTime())) return "-";
+
+    const now = new Date();
+    let totalBulan =
+      (now.getFullYear() - lahir.getFullYear()) * 12 +
+      (now.getMonth() - lahir.getMonth());
+    // bulan berjalan belum penuh kalau tanggal sekarang < tanggal lahir
+    if (now.getDate() < lahir.getDate()) totalBulan -= 1;
+    if (totalBulan < 0) totalBulan = 0;
+
+    const tahun = Math.floor(totalBulan / 12);
+    const bulan = totalBulan % 12;
+    return `${tahun} Tahun ${bulan} Bulan`;
+  }
+
   async function loadData() {
     try {
       const records = await pb.collection("data_pasien").getFullList({
@@ -95,6 +119,7 @@
         nama_pasien: r.nama_pasien,
         alamat: r.alamat,
         tanggal_lahir: toDateInput(r.tanggal_lahir),
+        umur: hitungUmur(r.tanggal_lahir),
         nomor_telepon: r.nomor_telepon ?? "",
       }));
       error = "";
@@ -225,7 +250,7 @@
 </script>
 
 {#if loading}
-  <DataTableSkeleton columns={6} rows={5} headers={headers} />
+  <DataTableSkeleton columns={7} rows={5} headers={headers} />
 {:else if error !== ""}
   <p class="error">{error}</p>
 {:else}
