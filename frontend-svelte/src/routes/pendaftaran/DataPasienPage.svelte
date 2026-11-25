@@ -278,6 +278,8 @@
           tooltipPosition="right"
           on:click={() => openDelete(row)}
         />
+      {:else if cell.key === "nama_pasien" || cell.key === "alamat"}
+        {cell.value ? cell.value.toUpperCase() : "-"}
       {:else}
         {cell.value || "-"}
       {/if}
