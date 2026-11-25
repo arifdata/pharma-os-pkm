@@ -22,6 +22,29 @@ onRecordUpdate((e) => {
 }, "penerimaan_gudang_items")
 
 /**
+ * data_pasien: nomor_kartu, nama_pasien, alamat, nomor_telepon selalu
+ * lowercase (trim dulu). Model hook dipakai supaya semua jalur tulis kena,
+ * termasuk save internal ($app.save).
+ */
+onRecordCreate((e) => {
+  const lower = (v) => (v === null || v === undefined ? "" : String(v).trim().toLowerCase())
+  const fields = ["nomor_kartu", "nama_pasien", "alamat", "nomor_telepon"]
+  for (const field of fields) {
+    e.record.set(field, lower(e.record.get(field)))
+  }
+  e.next()
+}, "data_pasien")
+
+onRecordUpdate((e) => {
+  const lower = (v) => (v === null || v === undefined ? "" : String(v).trim().toLowerCase())
+  const fields = ["nomor_kartu", "nama_pasien", "alamat", "nomor_telepon"]
+  for (const field of fields) {
+    e.record.set(field, lower(e.record.get(field)))
+  }
+  e.next()
+}, "data_pasien")
+
+/**
  * Setiap item penerimaan gudang = satu baris stok_gudang baru, dan baris baru
  * selalu is_active = true. Tidak ada penggabungan jumlah, walau no_batch sama.
  */

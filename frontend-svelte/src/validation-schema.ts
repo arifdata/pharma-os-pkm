@@ -46,3 +46,15 @@ export const DistribusiItemSchema = z.object({
 	jumlah: z.number().int().min(1, "Jumlah minimal 1"),
 	tanggal_distribusi: TanggalPenerimaanSchema,
 });
+
+// Data Pasien Validation Schema — semua field teks disimpan lowercase
+export const DataPasienSchema = z.object({
+	nomor_kartu: z.string().trim().toLowerCase().min(1, "Nomor kartu tidak boleh kosong"),
+	nama_pasien: z.string().trim().toLowerCase().min(1, "Nama pasien tidak boleh kosong"),
+	alamat: z.string().trim().toLowerCase().min(1, "Alamat tidak boleh kosong"),
+	tanggal_lahir: z
+		.string()
+		.min(1, "Tanggal lahir tidak boleh kosong")
+		.refine((val) => !Number.isNaN(Date.parse(val)), "Tanggal lahir tidak valid"),
+	nomor_telepon: z.string().trim().toLowerCase().optional(),
+});

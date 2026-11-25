@@ -3,7 +3,7 @@ import HomePage from './routes/HomePage.svelte'
 import TestingPage from './routes/TestingPage.svelte'
 
 // Route Pendaftaran
-// import DataPasienPage from './routes/pendaftaran/DataPasienPage.svelte'
+import DataPasienPage from './routes/pendaftaran/DataPasienPage.svelte'
 // import PasienDetailPage from './routes/pendaftaran/PasienDetailPage.svelte'
 // import TambahPasienPage from './routes/pendaftaran/TambahPasienPage.svelte'
 
@@ -35,7 +35,7 @@ export default {
     '/masterbmhp': MasterBMHPPage,
     '/subunit': SubunitPage,
 
-    // '/data_pasien': DataPasienPage,
+    '/data_pasien': DataPasienPage,
     // '/data_pasien/detail/:id': PasienDetailPage,
     // '/data_pasien/tambah': TambahPasienPage,
 

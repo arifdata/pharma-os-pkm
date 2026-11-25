@@ -24,6 +24,7 @@
     Home,
     Contrast,
     Medication,
+    User,
     Logout,
     Login,
     LockedAndBlocked,
@@ -86,6 +87,9 @@
   <SideNavItems>
     {#if auth.isLoggedIn}
       <SideNavLink text="Home" href="#/" icon={Home} />
+      <SideNavMenu text="Pendaftaran" expanded={true} icon={User}>
+        <SideNavMenuItem href="#/data_pasien" text="Data Pasien" />
+      </SideNavMenu>
       <SideNavMenu text="Farmasi" expanded={true} icon={Medication}>
         <SideNavMenuItem href="#/penerimaan_gudang" text="Penerimaan Gudang" />
         <SideNavMenuItem href="#/stok_gudang" text="Stok Gudang" />
