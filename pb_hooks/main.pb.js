@@ -45,6 +45,21 @@ onRecordUpdate((e) => {
 }, "data_pasien")
 
 /**
+ * data_peresep: nama_peresep selalu lowercase (trim dulu), termasuk save internal.
+ */
+onRecordCreate((e) => {
+  const lower = (v) => (v === null || v === undefined ? "" : String(v).trim().toLowerCase())
+  e.record.set("nama_peresep", lower(e.record.get("nama_peresep")))
+  e.next()
+}, "data_peresep")
+
+onRecordUpdate((e) => {
+  const lower = (v) => (v === null || v === undefined ? "" : String(v).trim().toLowerCase())
+  e.record.set("nama_peresep", lower(e.record.get("nama_peresep")))
+  e.next()
+}, "data_peresep")
+
+/**
  * Setiap item penerimaan gudang = satu baris stok_gudang baru, dan baris baru
  * selalu is_active = true. Tidak ada penggabungan jumlah, walau no_batch sama.
  */

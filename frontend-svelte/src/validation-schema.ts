@@ -58,3 +58,8 @@ export const DataPasienSchema = z.object({
 		.refine((val) => !Number.isNaN(Date.parse(val)), "Tanggal lahir tidak valid"),
 	nomor_telepon: z.string().trim().toLowerCase().optional(),
 });
+
+// Data Peresep Validation Schema — nama peresep disimpan lowercase
+export const DataPeresepSchema = z.object({
+	nama_peresep: z.string().trim().toLowerCase().min(1, "Nama peresep tidak boleh kosong"),
+});
