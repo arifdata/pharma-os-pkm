@@ -14,7 +14,7 @@
     Loading
   } from "carbon-components-svelte";
   import { Indonesian } from "flatpickr/dist/l10n/id";
-  import { Add, Edit, RenewAlt, TrashCan } from "carbon-icons-svelte";
+  import { Add, Download, Edit, RenewAlt, TrashCan, Upload } from "carbon-icons-svelte";
   import { pb } from "../../../pb/client.svelte";
   import { notif } from "../../../lib/notif.svelte";
   import {
@@ -37,6 +37,10 @@
   let bmhpRequestId = 0;
   /** @type {Map<string,string>} cache id -> nama, dipakai untuk menampilkan item terpilih */
   const bmhpNames = new Map();
+  // Map tidak reaktif; counter ini memicu re-render saat cache nama berubah (mis. setelah import)
+  let bmhpNamesVersion = $state(0);
+  /** @type {HTMLInputElement|undefined} */
+  let importFileInput;
   let confirmSubmitModal = $state(false);
   let isLoading = $state(false);
 
@@ -107,6 +111,7 @@
         bmhpNames.set(r.id, r.nama_bmhp);
         return { id: r.id, name: r.nama_bmhp };
       });
+      bmhpNamesVersion++;
     } catch (e) {
       console.error("Gagal fetch master_bmhp:", e);
     } finally {
@@ -123,13 +128,125 @@
 
   /** @param {string} id */
   function namaBMHP(id) {
+    void bmhpNamesVersion;
     return bmhpNames.get(id) ?? "(belum dipilih)";
+  }
+
+  /**
+   * Ambil nama BMHP yang belum ada di cache (mis. setelah import draft).
+   * @param {string[]} ids
+   */
+  async function loadBmhpNames(ids) {
+    const missing = [...new Set(ids)].filter((id) => id && !bmhpNames.has(id));
+    if (missing.length === 0) return;
+    try {
+      /** @type {Record<string,string>} */
+      const params = {};
+      const filter = missing
+        .map((id, i) => {
+          params[`id${i}`] = id;
+          return `id = {:id${i}}`;
+        })
+        .join(" || ");
+      const records = await pb.collection("master_bmhp").getFullList({
+        filter: pb.filter(filter, params),
+      });
+      for (const r of records) bmhpNames.set(r.id, r.nama_bmhp);
+      bmhpNamesVersion++;
+    } catch (e) {
+      console.error("Gagal fetch nama master_bmhp:", e);
+    }
+  }
+
+  function exportDraft() {
+    if (items.length === 0) {
+      notif.add({
+        kind: "warning",
+        title: "Belum ada item untuk diexport.",
+        timeout: 3000,
+      });
+      return;
+    }
+    const blob = new Blob([JSON.stringify(items, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const now = new Date();
+    const pad = (/** @type {number} */ n) => String(n).padStart(2, "0");
+    const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `draft-penerimaan-${stamp}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    notif.add({
+      kind: "success",
+      title: `${items.length} item berhasil diexport.`,
+      timeout: 3000,
+    });
+  }
+
+  function openImportPicker() {
+    importFileInput?.click();
+  }
+
+  /** @param {Event & { currentTarget: EventTarget & HTMLInputElement }} event */
+  async function importDraft(event) {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    input.value = "";
+    if (!file) return;
+
+    /** @type {unknown} */
+    let raw;
+    try {
+      raw = JSON.parse(await file.text());
+    } catch {
+      notif.add({ kind: "error", title: "File JSON tidak valid.", timeout: 3000 });
+      return;
+    }
+    if (!Array.isArray(raw) || raw.length === 0) {
+      notif.add({
+        kind: "error",
+        title: "File harus berisi array item yang tidak kosong.",
+        timeout: 3000,
+      });
+      return;
+    }
+
+    /** @type {typeof items} */
+    const restored = [];
+    for (const [i, entry] of raw.entries()) {
+      const parsed = ItemPenerimaanSchema.safeParse(entry);
+      if (!parsed.success) {
+        notif.add({
+          kind: "error",
+          title: `Item #${i + 1}: ${parsed.error.issues[0]?.message ?? "tidak valid"}`,
+          timeout: 5000,
+        });
+        return;
+      }
+      restored.push({ ...parsed.data });
+    }
+
+    items = restored;
+    await loadBmhpNames(restored.map((it) => it.id_bmhp));
+    notif.add({
+      kind: "success",
+      title: `${restored.length} item berhasil diimpor.`,
+      timeout: 3000,
+    });
   }
 
   /** @param {string} id */
   function onBmhpSelect(id) {
     const selected = masterBMHP.find((m) => m.id === id);
-    if (selected) bmhpNames.set(selected.id, selected.name);
+    if (selected) {
+      bmhpNames.set(selected.id, selected.name);
+      bmhpNamesVersion++;
+    }
     draftItem.id_bmhp = id;
     bmhpQuery = "";
     masterBMHP = [];
@@ -322,8 +439,34 @@
 {@render renderDaftarItems()}
 
 <Box fill="field" padding={4} marginY={4}>
+  <input
+    type="file"
+    accept="application/json,.json"
+    style="display: none;"
+    bind:this={importFileInput}
+    onchange={importDraft}
+  />
   <ButtonSet>
     <Button icon={Add} iconDescription="Tambah item" tooltipPosition="right" on:click={openAddItem} />
+    <Button
+      kind="ghost"
+      icon={Download}
+      iconDescription="Export draft item"
+      tooltipPosition="top"
+      disabled={items.length === 0}
+      on:click={exportDraft}
+    >
+      Save Draft
+    </Button>
+    <Button
+      kind="ghost"
+      icon={Upload}
+      iconDescription="Import draft item"
+      tooltipPosition="top"
+      on:click={openImportPicker}
+    >
+      Load Draft
+    </Button>
     {#if (items.length > 0)}
       <Button kind="primary" on:click={() => (confirmSubmitModal = true)}>Submit</Button>
     {:else}
