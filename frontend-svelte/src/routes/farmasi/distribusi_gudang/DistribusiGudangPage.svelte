@@ -9,6 +9,7 @@
     Modal,
     NumberInput,
     Pagination,
+    Search,
     Select,
     SelectItem,
     Tag,
@@ -33,6 +34,13 @@
   let pageSize = $state(10);
   let totalItems = $state(0);
 
+  // --- pencarian nama item (server-side) ---
+  let searchQuery = $state("");
+  /** @type {ReturnType<typeof setTimeout>|undefined} */
+  let searchDebounce;
+  // dipakai untuk membuang respons lama saat user mengetik cepat / ganti halaman
+  let loadRequestId = 0;
+
   // --- modal distribusi ---
   let modalOpen = $state(false);
   /** @type {any|null} */
@@ -43,8 +51,11 @@
   let submitting = $state(false);
 
   // --- distribusi massal (banyak item, satu subunit tujuan) ---
-  /** @type {string[]} id baris stok_gudang yang dicentang */
-  let selectedRowIds = $state([]);
+  // Simpan snapshot baris yang dicentang, bukan cuma id: pilihan harus tetap
+  // hidup walau baris itu tersaring keluar oleh pencarian / pindah halaman.
+  /** @type {any[]} */
+  let selectedRows = $state([]);
+  let selectedRowIds = $derived(selectedRows.map((r) => r.id));
   let bulkModalOpen = $state(false);
   let bulkTujuan = $state("");
   let bulkTanggal = $state("");
@@ -87,16 +98,24 @@
    * Stok yang bisa didistribusikan: aktif dan masih ada jumlahnya.
    */
   async function loadData() {
+    const requestId = ++loadRequestId;
     try {
+      const conditions = ["is_active = true", "jumlah > {:min}"];
+      /** @type {Record<string, any>} */
+      const params = { min: 0 };
+      const q = searchQuery.trim();
+      if (q !== "") {
+        conditions.push("item.nama_bmhp.nama_bmhp ~ {:q}");
+        params.q = q;
+      }
+
       const result = await pb.collection("stok_gudang").getList(currentPage, pageSize, {
-        filter: pb.filter("is_active = true && jumlah > {:min}", { min: 0 }),
+        filter: pb.filter(conditions.join(" && "), params),
         expand: "item,item.nama_bmhp",
         sort: "created",
       });
+      if (requestId !== loadRequestId) return;
       totalItems = result.totalItems;
-      // buang centang yang barisnya tidak lagi tampil (mis. setelah reload)
-      const visibleIds = new Set(result.items.map((/** @type {any} */ r) => r.id));
-      selectedRowIds = selectedRowIds.filter((id) => visibleIds.has(id));
       rows = result.items.map((/** @type {any} */ r) => {
         const item = r.expand?.["item"];
         return {
@@ -108,10 +127,27 @@
           jumlah: r["jumlah"] ?? 0,
         };
       });
+      // segarkan snapshot pilihan dengan data terbaru (stok bisa berubah
+      // setelah distribusi lain); baris di halaman lain tetap pakai snapshot lama
+      if (selectedRows.length > 0) {
+        const byId = new Map(rows.map((r) => [r.id, r]));
+        selectedRows = selectedRows.map((r) => byId.get(r.id) ?? r);
+      }
       error = "";
     } catch (e) {
+      if (requestId !== loadRequestId) return;
       error = /** @type {Error} */ (e).message ?? "Gagal memuat data";
     }
+  }
+
+  /** @param {string} value */
+  function onSearchInput(value) {
+    searchQuery = value;
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(() => {
+      currentPage = 1;
+      loadData();
+    }, 300);
   }
 
   async function loadSubunits() {
@@ -211,21 +247,21 @@
   /** @param {CustomEvent<{ row: any, selected: boolean }>} event */
   function onRowSelect(event) {
     const { row, selected } = event.detail;
-    selectedRowIds = selected
-      ? [...selectedRowIds, row.id]
-      : selectedRowIds.filter((id) => id !== row.id);
+    selectedRows = selected
+      ? [...selectedRows.filter((r) => r.id !== row.id), row]
+      : selectedRows.filter((r) => r.id !== row.id);
   }
 
   /** @param {CustomEvent<{ selected: boolean }>} event */
   function onHeaderSelect(event) {
-    const pageIds = rows.map((r) => r.id);
-    selectedRowIds = event.detail.selected
-      ? [...new Set([...selectedRowIds, ...pageIds])]
-      : selectedRowIds.filter((id) => !pageIds.includes(id));
+    const pageIds = new Set(rows.map((r) => r.id));
+    selectedRows = event.detail.selected
+      ? [...selectedRows.filter((r) => !pageIds.has(r.id)), ...rows]
+      : selectedRows.filter((r) => !pageIds.has(r.id));
   }
 
   function openBulkDistribusi() {
-    const selected = rows.filter((r) => selectedRowIds.includes(r.id));
+    const selected = selectedRows;
     if (selected.length === 0) {
       notif.add({
         kind: "warning",
@@ -305,7 +341,7 @@
           : "Subunit nonaktif, stok subunit tidak dicatat.",
         timeout: 4000,
       });
-      selectedRowIds = [];
+      selectedRows = [];
       closeBulkModal();
       await reload();
     } catch (e) {
@@ -317,7 +353,7 @@
       });
       // tutup & kosongkan pilihan supaya input jumlah tidak basi, lalu muat ulang
       // supaya stok yang sudah terpotong terlihat
-      selectedRowIds = [];
+      selectedRows = [];
       closeBulkModal();
       await reload();
     } finally {
@@ -365,6 +401,15 @@
   >
     <Toolbar>
       <ToolbarContent>
+        <div class="toolbar-search">
+          <Search
+            size="sm"
+            placeholder="Cari nama item..."
+            on:input={(e) =>
+              onSearchInput(/** @type {HTMLInputElement} */ (e.currentTarget).value)}
+            on:clear={() => onSearchInput("")}
+          />
+        </div>
         <Button
           icon={Renew}
           iconDescription="Reload Data"
@@ -561,6 +606,11 @@
     font-size: 0.75rem;
     line-height: 1rem;
     color: var(--cds-text-secondary, #525252);
+  }
+
+  .toolbar-search {
+    flex: 0 1 18rem;
+    margin-right: auto;
   }
 
   .bulk-hint {
