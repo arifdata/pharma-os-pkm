@@ -2,7 +2,6 @@
   import {
     Box,
     Button,
-    ButtonSet,
     TextInput,
     DatePicker,
     DatePickerInput,
@@ -446,33 +445,27 @@
     bind:this={importFileInput}
     onchange={importDraft}
   />
-  <ButtonSet>
-    <Button icon={Add} iconDescription="Tambah item" tooltipPosition="right" on:click={openAddItem} />
+  <div class="action-bar">
+    <Button kind="tertiary" icon={Add} on:click={openAddItem}>Tambah Item</Button>
     <Button
       kind="ghost"
       icon={Download}
-      iconDescription="Export draft item"
-      tooltipPosition="top"
       disabled={items.length === 0}
       on:click={exportDraft}
     >
-      Save Draft
+      Simpan Draft
     </Button>
-    <Button
-      kind="ghost"
-      icon={Upload}
-      iconDescription="Import draft item"
-      tooltipPosition="top"
-      on:click={openImportPicker}
-    >
-      Load Draft
-    </Button>
-    {#if (items.length > 0)}
-      <Button kind="primary" on:click={() => (confirmSubmitModal = true)}>Submit</Button>
-    {:else}
-      <Button kind="primary" disabled>Submit</Button>
-    {/if}
-  </ButtonSet>
+    <Button kind="ghost" icon={Upload} on:click={openImportPicker}>Load Draft</Button>
+    <div class="action-bar__primary">
+      <Button
+        kind="primary"
+        disabled={items.length === 0}
+        on:click={() => (confirmSubmitModal = true)}
+      >
+        Submit
+      </Button>
+    </div>
+  </div>
 </Box>
 
 <Modal
@@ -572,6 +565,17 @@
     padding: 0.5rem 1rem;
     font-size: 0.75rem;
     color: var(--cds-text-secondary, #525252);
+  }
+
+  .action-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .action-bar__primary {
+    margin-left: auto;
   }
 
   .item-summary {
