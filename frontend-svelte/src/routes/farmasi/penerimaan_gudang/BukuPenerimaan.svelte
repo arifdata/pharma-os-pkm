@@ -636,6 +636,7 @@
   bind:open={itemModalOpen}
   primaryButtonText={editingIndex === null ? "Tambah Item" : "Simpan Item"}
   secondaryButtonText="Batal"
+  shouldSubmitOnEnter={false}
   on:click:button--primary={simpanItem}
   on:click:button--secondary={() => (itemModalOpen = false)}
 >
