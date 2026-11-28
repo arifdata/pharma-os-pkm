@@ -5,15 +5,19 @@
     DataTable,
     DataTableSkeleton,
     Pagination,
-    Search,
     Tag,
     TagSet,
     Toolbar,
     ToolbarContent,
+    ToolbarSearch,
   } from "carbon-components-svelte";
   import { Renew } from "carbon-icons-svelte";
 
   import { pb } from "../../pb/client.svelte";
+  import EmptyState from "../../lib/EmptyState.svelte";
+  import ErrorState from "../../lib/ErrorState.svelte";
+  import PageShell from "../../lib/PageShell.svelte";
+  import { debounce, pageUpdateHandler } from "../../lib/table";
 
   /** @type {any[]} */
   let rows = $state([]);
@@ -24,8 +28,6 @@
   let pageSize = $state(10);
   let totalItems = $state(0);
   let query = $state("");
-  /** @type {ReturnType<typeof setTimeout>|undefined} */
-  let queryDebounce;
 
   const headers = [
     { key: "nama_bmhp", value: "Nama Item", width: "30%" },
@@ -94,94 +96,96 @@
     reloading = false;
   }
 
+  const handlePageUpdate = pageUpdateHandler(
+    () => currentPage,
+    (page) => (currentPage = page),
+    loadData,
+  );
+
+  /**
+   * Reset ke halaman 1 lalu muat ulang. Carbon `Pagination` tidak memancarkan
+   * `update` untuk perubahan `page` programatik, jadi `loadData` dipanggil
+   * langsung di sini.
+   */
+  function reloadFromFirstPage() {
+    currentPage = 1;
+    loadData();
+  }
+
+  const applyQuery = debounce(reloadFromFirstPage);
+
   /**
    * @param {string} value
    */
   function onSearch(value) {
     query = value;
-    clearTimeout(queryDebounce);
-    queryDebounce = setTimeout(() => {
-      // hasil pencarian selalu mulai dari halaman 1
-      if (currentPage !== 1) {
-        currentPage = 1;
-        return;
-      }
-      loadData();
-    }, 300);
-  }
-
-  /** @type {number | undefined} */
-  let appliedPageSize;
-
-  /**
-   * Pagination memancarkan `update` saat page/pageSize berubah.
-   * @param {CustomEvent<{ page: number, pageSize: number }>} event
-   */
-  function handlePageUpdate(event) {
-    if (appliedPageSize === undefined) appliedPageSize = event.detail.pageSize;
-    if (event.detail.pageSize !== appliedPageSize) {
-      appliedPageSize = event.detail.pageSize;
-      if (currentPage !== 1) {
-        // reset ke halaman 1; event `update` berikutnya yang memuat data
-        currentPage = 1;
-        return;
-      }
-    }
-    loadData();
+    applyQuery();
   }
 
   onMount(() => loadData().finally(() => (loading = false)));
 </script>
 
-{#if loading}
-  <DataTableSkeleton columns={5} rows={5} headers={headers} />
-{:else if error !== ""}
-  <p class="error">{error}</p>
-{:else}
-  <DataTable title="Stok Gudang" {headers} {rows} zebra>
-    <Toolbar>
-      <ToolbarContent>
-        <Search
-          size="sm"
-          placeholder="Cari nama item..."
-          bind:value={query}
-          on:input={(/** @type {any} */ e) => onSearch(e.target?.value ?? "")}
-          on:clear={() => onSearch("")}
-        />
-        <Button
-          icon={Renew}
-          iconDescription="Reload Data"
-          tooltipPosition="top"
-          disabled={reloading}
-          on:click={reload}
-        />
-      </ToolbarContent>
-    </Toolbar>
-    <svelte:fragment slot="cell" let:cell>
-      {#if cell.key === "labels" && cell.value !== "-"}
-        <TagSet multiline>
-          {#each cell.value.split(", ") as label}
-            <Tag size="sm" type="outline">{label}</Tag>
-          {/each}
-        </TagSet>
-      {:else}
-        {cell.value}
-      {/if}
-    </svelte:fragment>
-  </DataTable>
-  <Pagination
-    bind:page={currentPage}
-    bind:pageSize
-    {totalItems}
-    pageSizes={[10, 20, 50]}
-    size="sm"
-    on:update={handlePageUpdate}
-  />
-{/if}
+<PageShell
+  title="Stok Gudang"
+  subtitle="Stok aktif per batch beserta tanggal kadaluarsa."
+>
+  {#if loading}
+    <DataTableSkeleton columns={5} rows={5} headers={headers} />
+  {:else if error !== ""}
+    <ErrorState message="Gagal memuat stok gudang" description={error} onRetry={reload} />
+  {:else}
+    <DataTable {headers} {rows} zebra size="short">
+      <Toolbar>
+        <ToolbarContent>
+          <ToolbarSearch
+            bind:value={query}
+            placeholder="Cari nama item"
+            on:input={(/** @type {any} */ e) => onSearch(e.target?.value ?? "")}
+            on:clear={() => onSearch("")}
+            persistent
+          />
+          <Button
+            icon={Renew}
+            iconDescription="Reload Data"
+            tooltipPosition="top"
+            disabled={reloading}
+            on:click={reload}
+          />
+        </ToolbarContent>
+      </Toolbar>
+      <svelte:fragment slot="cell" let:cell>
+        {#if cell.key === "labels" && cell.value !== "-"}
+          <TagSet multiline>
+            {#each cell.value.split(", ") as label}
+              <Tag size="sm" type="outline">{label}</Tag>
+            {/each}
+          </TagSet>
+        {:else if cell.key === "jumlah"}
+          <div class="cell-numeric">{cell.value}</div>
+        {:else}
+          {cell.value}
+        {/if}
+      </svelte:fragment>
+    </DataTable>
 
-<style>
-  .error {
-    color: var(--cds-text-error, #da1e28);
-    padding: 1rem;
-  }
-</style>
+    {#if totalItems === 0}
+      <EmptyState
+        title={query.trim() !== "" ? "Tidak ada hasil" : "Stok masih kosong"}
+        description={query.trim() !== ""
+          ? "Tidak ada item yang cocok dengan pencarian."
+          : "Stok akan terisi setelah ada penerimaan gudang."}
+        actionLabel={query.trim() !== "" ? "Hapus pencarian" : ""}
+        onAction={() => onSearch("")}
+      />
+    {:else}
+      <Pagination
+        bind:page={currentPage}
+        bind:pageSize
+        {totalItems}
+        pageSizes={[10, 20, 50]}
+        size="sm"
+        on:update={handlePageUpdate}
+      />
+    {/if}
+  {/if}
+</PageShell>

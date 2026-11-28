@@ -17,17 +17,26 @@
   import { Indonesian } from "flatpickr/dist/l10n/id";
 
   import { pb } from "../../pb/client.svelte";
+  import EmptyState from "../../lib/EmptyState.svelte";
+  import ErrorState from "../../lib/ErrorState.svelte";
+  import PageShell from "../../lib/PageShell.svelte";
+  import { debounce, pageUpdateHandler, sortParam } from "../../lib/table";
   import { notif } from "../../lib/notif.svelte";
   import { DataPasienSchema } from "../../validation-schema";
 
   /** @type {any[]} */
-  let allRows = $state([]);
+  let rows = $state([]);
   let loading = $state(true);
   let error = $state("");
   let searchTerm = $state("");
   let reloading = $state(false);
   let currentPage = $state(1);
   let pageSize = $state(10);
+  let totalItems = $state(0);
+  /** @type {string | undefined} */
+  let sortKey = $state("nama_pasien");
+  /** @type {"ascending" | "descending" | "none"} */
+  let sortDirection = $state("ascending");
 
   // --- tambah ---
   let openAddModal = $state(false);
@@ -51,30 +60,14 @@
   let deleteTargetId = $state("");
   let deleteTargetName = $state("");
 
+  /** @type {{ key: string, value: string, width?: string, sort?: false }[]} */
   const headers = [
     { key: "nomor_kartu", value: "No. Kartu" },
     { key: "nama_pasien", value: "Nama Pasien", width: "25%" },
     { key: "alamat", value: "Alamat", width: "25%" },
-    { key: "umur", value: "Umur" },
-    { key: "actions", value: "Actions" },
+    { key: "umur", value: "Umur", sort: false },
+    { key: "actions", value: "Actions", sort: false },
   ];
-
-  let rows = $derived(
-    searchTerm.trim() === ""
-      ? allRows
-      : allRows.filter((r) => {
-          const q = searchTerm.toLowerCase();
-          return (
-            String(r.nomor_kartu ?? "").toLowerCase().includes(q) ||
-            String(r.nama_pasien ?? "").toLowerCase().includes(q)
-          );
-        })
-  );
-
-  $effect(() => {
-    rows;
-    currentPage = 1;
-  });
 
   /** @param {any} value */
   function toDateInput(value) {
@@ -106,11 +99,21 @@
   }
 
   async function loadData() {
+    const filters = [];
+    /** @type {Record<string, string>} */
+    const params = {};
+    const q = searchTerm.trim();
+    if (q !== "") {
+      filters.push("(nomor_kartu ~ {:q} || nama_pasien ~ {:q})");
+      params.q = q;
+    }
     try {
-      const records = await pb.collection("data_pasien").getFullList({
-        sort: "nama_pasien",
+      const result = await pb.collection("data_pasien").getList(currentPage, pageSize, {
+        filter: filters.length > 0 ? pb.filter(filters.join(" && "), params) : "",
+        sort: sortParam(sortKey, sortDirection, "nama_pasien"),
       });
-      allRows = records.map((/** @type {any} */ r) => ({
+      totalItems = result.totalItems;
+      rows = result.items.map((/** @type {any} */ r) => ({
         id: r.id,
         nomor_kartu: r.nomor_kartu,
         nama_pasien: r.nama_pasien,
@@ -129,6 +132,43 @@
     reloading = true;
     await loadData();
     reloading = false;
+  }
+
+  const handlePageUpdate = pageUpdateHandler(
+    () => currentPage,
+    (page) => (currentPage = page),
+    loadData,
+  );
+
+  /**
+   * Sorting dikerjakan server-side; `preventDefault` mencegah DataTable
+   * mengurutkan hanya halaman aktif (yang urutannya bisa berbeda).
+   *
+   * @param {CustomEvent<{ key: string | null, direction: "ascending" | "descending" | "none" }>} event
+   */
+  function onSort(event) {
+    event.preventDefault();
+    sortKey = event.detail.key ?? "nama_pasien";
+    sortDirection = event.detail.direction;
+    reloadFromFirstPage();
+  }
+
+  /**
+   * Reset ke halaman 1 lalu muat ulang. Carbon `Pagination` tidak memancarkan
+   * `update` untuk perubahan `page` programatik, jadi `loadData` dipanggil
+   * langsung di sini.
+   */
+  function reloadFromFirstPage() {
+    currentPage = 1;
+    loadData();
+  }
+
+  const applySearch = debounce(reloadFromFirstPage);
+
+  /** @param {string} value */
+  function onSearch(value) {
+    searchTerm = value;
+    applySearch();
   }
 
   /**
@@ -246,25 +286,28 @@
   onMount(() => loadData().finally(() => (loading = false)));
 </script>
 
+<PageShell title="Data Pasien" subtitle="Data identitas pasien yang terdaftar.">
 {#if loading}
   <DataTableSkeleton columns={5} rows={5} headers={headers} />
 {:else if error !== ""}
-  <p class="error">{error}</p>
+  <ErrorState message="Gagal memuat data pasien" description={error} onRetry={reload} />
 {:else}
   <DataTable
-    title="Data Pasien"
     size="short"
     {headers}
     {rows}
-    {pageSize}
-    page={currentPage}
+    zebra
     sortable
+    bind:sortKey
+    bind:sortDirection
+    on:sort={onSort}
   >
     <Toolbar>
       <ToolbarContent>
         <ToolbarSearch
           bind:value={searchTerm}
-          on:clear={() => (searchTerm = "")}
+          on:input={(/** @type {any} */ e) => onSearch(e.target?.value ?? "")}
+          on:clear={() => onSearch("")}
           placeholder="Cari nama pasien atau no. kartu"
           persistent
         />
@@ -309,13 +352,27 @@
     </svelte:fragment>
   </DataTable>
 
-  <Pagination
-    bind:page={currentPage}
-    bind:pageSize
-    totalItems={rows.length}
-    pageSizes={[5, 10, 20, 50]}
-    size="sm"
-  />
+  {#if totalItems === 0}
+    <EmptyState
+      title={searchTerm.trim() !== "" ? "Tidak ada hasil" : "Belum ada data pasien"}
+      description={searchTerm.trim() !== ""
+        ? "Tidak ada pasien yang cocok dengan pencarian."
+        : "Data pasien yang didaftarkan akan tampil di sini."}
+      actionLabel={searchTerm.trim() !== "" ? "Hapus pencarian" : "Tambah Pasien"}
+      onAction={searchTerm.trim() !== "" ? () => onSearch("") : () => (openAddModal = true)}
+    />
+  {:else}
+    <Pagination
+      bind:page={currentPage}
+      bind:pageSize
+      {totalItems}
+      pageSizes={[10, 20, 50]}
+      size="sm"
+      on:update={handlePageUpdate}
+    />
+  {/if}
+{/if}
+</PageShell>
 
   <Modal
     bind:open={openAddModal}
@@ -403,11 +460,3 @@
   >
     <p>Apakah Anda yakin ingin menghapus pasien "{deleteTargetName}"?</p>
   </Modal>
-{/if}
-
-<style>
-  .error {
-    color: var(--cds-text-error, #da1e28);
-    padding: 1rem;
-  }
-</style>

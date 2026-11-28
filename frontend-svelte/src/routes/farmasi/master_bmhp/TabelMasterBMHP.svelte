@@ -16,11 +16,15 @@
   import { Renew, Add, TrashCan, Edit } from "carbon-icons-svelte";
 
   import { pb } from "../../../pb/client.svelte";
+  import EmptyState from "../../../lib/EmptyState.svelte";
+  import ErrorState from "../../../lib/ErrorState.svelte";
+  import PageShell from "../../../lib/PageShell.svelte";
+  import { debounce, pageUpdateHandler, sortParam } from "../../../lib/table";
   import { notif } from "../../../lib/notif.svelte";
   import { MasterBMHPSchema } from "../../../validation-schema";
 
   /** @type {any[]} */
-  let allRows = $state([]);
+  let rows = $state([]);
   let loading = $state(true);
   let error = $state("");
   let searchTerm = $state("");
@@ -36,37 +40,36 @@
   let editBMHPLabels = $state("");
   let currentPage = $state(1);
   let pageSize = $state(10);
+  let totalItems = $state(0);
+  /** @type {string | undefined} */
+  let sortKey = $state("nama_bmhp");
+  /** @type {"ascending" | "descending" | "none"} */
+  let sortDirection = $state("ascending");
 
+  /** @type {{ key: string, value: string, width?: string, sort?: false }[]} */
   const headers = [
-    { key: "nama_bmhp", value: "Nama BMHP", width: "50%"},
-    { key: "labels", value: "Labels"},
-    { key: "actions", value: "Actions" },
+    { key: "nama_bmhp", value: "Nama BMHP", width: "50%" },
+    { key: "labels", value: "Labels", sort: false },
+    { key: "actions", value: "Actions", sort: false },
   ];
 
-  let rows = $derived(
-    searchTerm.trim() === ""
-      ? allRows
-      : allRows.filter((r) => {
-          const q = searchTerm.toLowerCase();
-          return (
-            r.nama_bmhp.toLowerCase().includes(q) ||
-            r.labels.toLowerCase().includes(q)
-          );
-        })
-  );
-
-  $effect(() => {
-    rows;
-    currentPage = 1;
-  });
-
   async function loadData() {
+    const filters = [];
+    /** @type {Record<string, string>} */
+    const params = {};
+    const q = searchTerm.trim();
+    if (q !== "") {
+      filters.push("(nama_bmhp ~ {:q} || labels.label ~ {:q})");
+      params.q = q;
+    }
     try {
-      const records = await pb.collection("master_bmhp").getFullList({
+      const result = await pb.collection("master_bmhp").getList(currentPage, pageSize, {
+        filter: filters.length > 0 ? pb.filter(filters.join(" && "), params) : "",
         expand: "labels",
-        sort: "nama_bmhp",
+        sort: sortParam(sortKey, sortDirection, "nama_bmhp"),
       });
-      allRows = records.map((/** @type {any} */ r) => ({
+      totalItems = result.totalItems;
+      rows = result.items.map((/** @type {any} */ r) => ({
         id: r.id,
         nama_bmhp: r.nama_bmhp,
         labels: /** @type {any[]} */ (r.expand?.labels)?.map((l) => l.label).join(",") ?? "-",
@@ -81,6 +84,43 @@
     reloading = true;
     await loadData();
     reloading = false;
+  }
+
+  const handlePageUpdate = pageUpdateHandler(
+    () => currentPage,
+    (page) => (currentPage = page),
+    loadData,
+  );
+
+  /**
+   * Sorting dikerjakan server-side; `preventDefault` mencegah DataTable
+   * mengurutkan hanya halaman aktif (yang urutannya bisa berbeda).
+   *
+   * @param {CustomEvent<{ key: string | null, direction: "ascending" | "descending" | "none" }>} event
+   */
+  function onSort(event) {
+    event.preventDefault();
+    sortKey = event.detail.key ?? "nama_bmhp";
+    sortDirection = event.detail.direction;
+    reloadFromFirstPage();
+  }
+
+  /**
+   * Reset ke halaman 1 lalu muat ulang. Carbon `Pagination` tidak memancarkan
+   * `update` untuk perubahan `page` programatik, jadi `loadData` dipanggil
+   * langsung di sini.
+   */
+  function reloadFromFirstPage() {
+    currentPage = 1;
+    loadData();
+  }
+
+  const applySearch = debounce(reloadFromFirstPage);
+
+  /** @param {string} value */
+  function onSearch(value) {
+    searchTerm = value;
+    applySearch();
   }
 
   function clearFields() {
@@ -218,25 +258,29 @@
   onMount(() => loadData().finally(() => (loading = false)));
 </script>
 
+<PageShell title="Master BMHP" subtitle="Daftar bahan medis habis pakai beserta labelnya.">
 {#if loading}
   <DataTableSkeleton columns={3} rows={5} headers={headers} />
 {:else if error !== ""}
-  <p class="error">{error}</p>
+  <ErrorState message="Gagal memuat master BMHP" description={error} onRetry={reload} />
 {:else}
   <DataTable
-    title="Master BMHP"
     size="short"
     headers={headers}
     {rows}
-    {pageSize}
-    page={currentPage}
+    zebra
     sortable
+    bind:sortKey
+    bind:sortDirection
+    on:sort={onSort}
   >
     <Toolbar>
       <ToolbarContent>
         <ToolbarSearch
           bind:value={searchTerm}
-          on:clear={() => (searchTerm = "")}
+          on:input={(/** @type {any} */ e) => onSearch(e.target?.value ?? "")}
+          on:clear={() => onSearch("")}
+          placeholder="Cari nama atau label"
           persistent
         />
         <Button
@@ -289,14 +333,28 @@
       {/if}
     </svelte:fragment>
   </DataTable>
-  <Pagination
-    bind:page={currentPage}
-    bind:pageSize
-    totalItems={rows.length}
-    pageSizes={[5, 10, 20, 50]}
-    size="sm"
-  />
-  <Modal
+  {#if totalItems === 0}
+    <EmptyState
+      title={searchTerm.trim() !== "" ? "Tidak ada hasil" : "Belum ada master BMHP"}
+      description={searchTerm.trim() !== ""
+        ? "Tidak ada BMHP yang cocok dengan pencarian."
+        : "Data BMHP yang ditambahkan akan tampil di sini."}
+      actionLabel={searchTerm.trim() !== "" ? "Hapus pencarian" : "Tambah BMHP"}
+      onAction={searchTerm.trim() !== "" ? () => onSearch("") : () => (openAddModal = true)}
+    />
+  {:else}
+    <Pagination
+      bind:page={currentPage}
+      bind:pageSize
+      {totalItems}
+      pageSizes={[10, 20, 50]}
+      size="sm"
+      on:update={handlePageUpdate}
+    />
+  {/if}
+{/if}
+
+<Modal
     bind:open={openDeleteModal}
     danger
     primaryButtonText="Ya"
@@ -326,11 +384,4 @@
     <TextInput bind:value={inputBMHP} labelText="Nama BMHP" placeholder="Masukkan nama BMHP" />
     <TextInput bind:value={inputBMHPLabels} labelText="Labels" placeholder="pisahkan dengan koma ," />
   </Modal>
-{/if}
-
-<style>
-  .error {
-    color: var(--cds-text-error, #da1e28);
-    padding: 1rem;
-  }
-</style>
+</PageShell>

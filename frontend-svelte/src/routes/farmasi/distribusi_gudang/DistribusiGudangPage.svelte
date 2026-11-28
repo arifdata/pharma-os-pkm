@@ -9,17 +9,21 @@
     Modal,
     NumberInput,
     Pagination,
-    Search,
     Select,
     SelectItem,
     Tag,
     Toolbar,
     ToolbarContent,
+    ToolbarSearch,
   } from "carbon-components-svelte";
   import { Renew, ShoppingCart } from "carbon-icons-svelte";
   import { Indonesian } from "flatpickr/dist/l10n/id";
 
   import { pb } from "../../../pb/client.svelte";
+  import EmptyState from "../../../lib/EmptyState.svelte";
+  import ErrorState from "../../../lib/ErrorState.svelte";
+  import PageShell from "../../../lib/PageShell.svelte";
+  import { debounce, pageUpdateHandler } from "../../../lib/table";
   import { notif } from "../../../lib/notif.svelte";
   import { DistribusiItemSchema } from "../../../validation-schema";
 
@@ -36,8 +40,6 @@
 
   // --- pencarian nama item (server-side) ---
   let searchQuery = $state("");
-  /** @type {ReturnType<typeof setTimeout>|undefined} */
-  let searchDebounce;
   // dipakai untuk membuang respons lama saat user mengetik cepat / ganti halaman
   let loadRequestId = 0;
 
@@ -140,16 +142,29 @@
     }
   }
 
+  /**
+   * Reset ke halaman 1 lalu muat ulang. Carbon `Pagination` tidak memancarkan
+   * `update` untuk perubahan `page` programatik, jadi `loadData` dipanggil
+   * langsung di sini.
+   */
+  function reloadFromFirstPage() {
+    currentPage = 1;
+    loadData();
+  }
+
+  const applySearch = debounce(reloadFromFirstPage);
+
+  const handlePageUpdate = pageUpdateHandler(
+    () => currentPage,
+    (page) => (currentPage = page),
+    loadData,
+  );
+
   /** @param {string} value */
   function onSearchInput(value) {
     searchQuery = value;
-    clearTimeout(searchDebounce);
-    searchDebounce = setTimeout(() => {
-      currentPage = 1;
-      loadData();
-    }, 300);
+    applySearch();
   }
-
   async function loadSubunits() {
     try {
       const records = await pb.collection("subunits").getFullList({ sort: "subunit" });
@@ -361,39 +376,25 @@
     }
   }
 
-  /** @type {number | undefined} */
-  let appliedPageSize;
-
-  /**
-   * @param {CustomEvent<{ page: number, pageSize: number }>} event
-   */
-  function handlePageUpdate(event) {
-    if (appliedPageSize === undefined) appliedPageSize = event.detail.pageSize;
-    if (event.detail.pageSize !== appliedPageSize) {
-      appliedPageSize = event.detail.pageSize;
-      if (currentPage !== 1) {
-        currentPage = 1;
-        return;
-      }
-    }
-    loadData();
-  }
-
   onMount(() =>
     Promise.all([loadData(), loadSubunits()]).finally(() => (loading = false))
   );
 </script>
 
+<PageShell
+  title="Distribusi Gudang"
+  subtitle="Distribusikan stok gudang ke subunit tujuan."
+>
 {#if loading}
   <DataTableSkeleton columns={5} rows={5} headers={headers} />
 {:else if error !== ""}
-  <p class="error">{error}</p>
+  <ErrorState message="Gagal memuat stok gudang" description={error} onRetry={reload} />
 {:else}
   <DataTable
-    title="Distribusi Gudang"
     {headers}
     {rows}
     zebra
+    size="short"
     selectable
     {selectedRowIds}
     on:click:row--select={onRowSelect}
@@ -401,15 +402,13 @@
   >
     <Toolbar>
       <ToolbarContent>
-        <div class="toolbar-search">
-          <Search
-            size="sm"
-            placeholder="Cari nama item..."
-            on:input={(e) =>
-              onSearchInput(/** @type {HTMLInputElement} */ (e.currentTarget).value)}
-            on:clear={() => onSearchInput("")}
-          />
-        </div>
+        <ToolbarSearch
+          bind:value={searchQuery}
+          placeholder="Cari nama item"
+          on:input={(/** @type {any} */ e) => onSearchInput(e.target?.value ?? "")}
+          on:clear={() => onSearchInput("")}
+          persistent
+        />
         <Button
           icon={Renew}
           iconDescription="Reload Data"
@@ -439,20 +438,35 @@
         >
           Distribusi
         </Button>
+      {:else if cell.key === "jumlah"}
+        <div class="cell-numeric">{cell.value}</div>
       {:else}
         {cell.value}
       {/if}
     </svelte:fragment>
   </DataTable>
-  <Pagination
-    bind:page={currentPage}
-    bind:pageSize
-    {totalItems}
-    pageSizes={[10, 20, 50]}
-    size="sm"
-    on:update={handlePageUpdate}
-  />
+
+  {#if totalItems === 0}
+    <EmptyState
+      title={searchQuery.trim() !== "" ? "Tidak ada hasil" : "Tidak ada stok untuk didistribusikan"}
+      description={searchQuery.trim() !== ""
+        ? "Tidak ada item yang cocok dengan pencarian."
+        : "Stok gudang yang aktif dan bersisa akan tampil di sini."}
+      actionLabel={searchQuery.trim() !== "" ? "Hapus pencarian" : ""}
+      onAction={() => onSearchInput("")}
+    />
+  {:else}
+    <Pagination
+      bind:page={currentPage}
+      bind:pageSize
+      {totalItems}
+      pageSizes={[10, 20, 50]}
+      size="sm"
+      on:update={handlePageUpdate}
+    />
+  {/if}
 {/if}
+</PageShell>
 
 <Modal
   size="sm"
@@ -580,11 +594,6 @@
 </Modal>
 
 <style>
-  .error {
-    color: var(--cds-text-error, #da1e28);
-    padding: 1rem;
-  }
-
   .distribusi-form {
     display: flex;
     flex-direction: column;
@@ -606,11 +615,6 @@
     font-size: 0.75rem;
     line-height: 1rem;
     color: var(--cds-text-secondary, #525252);
-  }
-
-  .toolbar-search {
-    flex: 0 1 18rem;
-    margin-right: auto;
   }
 
   .bulk-hint {

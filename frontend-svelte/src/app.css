@@ -1,0 +1,8 @@
+/* Gaya global lintas halaman. Komponen tetap memakai token Carbon v10
+   (--cds-layer, --cds-text-primary, ...) supaya ikut tema terang/gelap. */
+
+/* Sel tabel berisi angka: rata kanan + lebar digit stabil agar mudah dipindai. */
+.cell-numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

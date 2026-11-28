@@ -17,6 +17,7 @@
   import { Add, Download, Edit, RenewAlt, TrashCan, Upload } from "carbon-icons-svelte";
   import { pb } from "../../../pb/client.svelte";
   import { notif } from "../../../lib/notif.svelte";
+  import PageShell from "../../../lib/PageShell.svelte";
   import {
     TambahBukuPenerimaanSchema,
     ItemPenerimaanSchema,
@@ -570,6 +571,12 @@
   {/if}
 {/snippet}
 
+<PageShell
+  title="Tambah Penerimaan"
+  subtitle="Catat surat penerimaan dan item yang masuk ke gudang."
+  backHref="#/penerimaan_gudang"
+  backLabel="Kembali ke daftar penerimaan"
+>
 <Box fill="field" padding={4} marginY={4}>
   <TextInput labelText="Nomor Surat" placeholder="Input nomor surat..." bind:value={nomorSurat}/>
   <br>
@@ -622,6 +629,7 @@
     </div>
   </div>
 </Box>
+</PageShell>
 
 <Modal
   size="lg"

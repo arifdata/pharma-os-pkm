@@ -13,16 +13,25 @@
   import { Renew, Add, TrashCan, Edit } from "carbon-icons-svelte";
 
   import { pb } from "../../pb/client.svelte";
+  import EmptyState from "../../lib/EmptyState.svelte";
+  import ErrorState from "../../lib/ErrorState.svelte";
+  import PageShell from "../../lib/PageShell.svelte";
+  import { pageUpdateHandler, sortParam } from "../../lib/table";
   import { notif } from "../../lib/notif.svelte";
   import { DataPeresepSchema } from "../../validation-schema";
 
   /** @type {any[]} */
-  let allRows = $state([]);
+  let rows = $state([]);
   let loading = $state(true);
   let error = $state("");
   let reloading = $state(false);
   let currentPage = $state(1);
   let pageSize = $state(10);
+  let totalItems = $state(0);
+  /** @type {string | undefined} */
+  let sortKey = $state("nama_peresep");
+  /** @type {"ascending" | "descending" | "none"} */
+  let sortDirection = $state("ascending");
 
   let openAddModal = $state(false);
   let inputNamaPeresep = $state("");
@@ -35,22 +44,19 @@
   let deleteTargetId = $state("");
   let deleteTargetName = $state("");
 
+  /** @type {{ key: string, value: string, width?: string, sort?: false }[]} */
   const headers = [
     { key: "nama_peresep", value: "Nama Peresep", width: "80%" },
-    { key: "actions", value: "Actions" },
+    { key: "actions", value: "Actions", sort: false },
   ];
-
-  $effect(() => {
-    allRows;
-    currentPage = 1;
-  });
 
   async function loadData() {
     try {
-      const records = await pb.collection("data_peresep").getFullList({
-        sort: "nama_peresep",
+      const result = await pb.collection("data_peresep").getList(currentPage, pageSize, {
+        sort: sortParam(sortKey, sortDirection, "nama_peresep"),
       });
-      allRows = records.map((/** @type {any} */ r) => ({
+      totalItems = result.totalItems;
+      rows = result.items.map((/** @type {any} */ r) => ({
         id: r.id,
         nama_peresep: r.nama_peresep,
       }));
@@ -64,6 +70,35 @@
     reloading = true;
     await loadData();
     reloading = false;
+  }
+
+  const handlePageUpdate = pageUpdateHandler(
+    () => currentPage,
+    (page) => (currentPage = page),
+    loadData,
+  );
+
+  /**
+   * Sorting dikerjakan server-side; `preventDefault` mencegah DataTable
+   * mengurutkan hanya halaman aktif (yang urutannya bisa berbeda).
+   *
+   * @param {CustomEvent<{ key: string | null, direction: "ascending" | "descending" | "none" }>} event
+   */
+  function onSort(event) {
+    event.preventDefault();
+    sortKey = event.detail.key ?? "nama_peresep";
+    sortDirection = event.detail.direction;
+    reloadFromFirstPage();
+  }
+
+  /**
+   * Reset ke halaman 1 lalu muat ulang. Carbon `Pagination` tidak memancarkan
+   * `update` untuk perubahan `page` programatik, jadi `loadData` dipanggil
+   * langsung di sini.
+   */
+  function reloadFromFirstPage() {
+    currentPage = 1;
+    loadData();
   }
 
   /**
@@ -157,19 +192,21 @@
   onMount(() => loadData().finally(() => (loading = false)));
 </script>
 
+<PageShell title="Data Peresep" subtitle="Daftar dokter/peresep yang terdaftar.">
 {#if loading}
   <DataTableSkeleton columns={2} rows={5} headers={headers} />
 {:else if error !== ""}
-  <p class="error">{error}</p>
+  <ErrorState message="Gagal memuat data peresep" description={error} onRetry={reload} />
 {:else}
   <DataTable
-    title="Data Peresep"
     size="short"
     {headers}
-    rows={allRows}
-    {pageSize}
-    page={currentPage}
+    {rows}
+    zebra
     sortable
+    bind:sortKey
+    bind:sortDirection
+    on:sort={onSort}
   >
     <Toolbar>
       <ToolbarContent>
@@ -214,13 +251,25 @@
     </svelte:fragment>
   </DataTable>
 
-  <Pagination
-    bind:page={currentPage}
-    bind:pageSize
-    totalItems={allRows.length}
-    pageSizes={[5, 10, 20, 50]}
-    size="sm"
-  />
+  {#if totalItems === 0}
+    <EmptyState
+      title="Belum ada data peresep"
+      description="Data peresep yang ditambahkan akan tampil di sini."
+      actionLabel="Tambah Peresep"
+      onAction={() => (openAddModal = true)}
+    />
+  {:else}
+    <Pagination
+      bind:page={currentPage}
+      bind:pageSize
+      {totalItems}
+      pageSizes={[10, 20, 50]}
+      size="sm"
+      on:update={handlePageUpdate}
+    />
+  {/if}
+{/if}
+</PageShell>
 
   <Modal
     bind:open={openAddModal}
@@ -260,11 +309,3 @@
   >
     <p>Apakah Anda yakin ingin menghapus peresep "{deleteTargetName.toUpperCase()}"?</p>
   </Modal>
-{/if}
-
-<style>
-  .error {
-    color: var(--cds-text-error, #da1e28);
-    padding: 1rem;
-  }
-</style>

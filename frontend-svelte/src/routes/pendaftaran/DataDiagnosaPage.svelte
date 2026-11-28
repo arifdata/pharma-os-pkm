@@ -14,17 +14,26 @@
   import { Renew, Add, TrashCan, Edit } from "carbon-icons-svelte";
 
   import { pb } from "../../pb/client.svelte";
+  import EmptyState from "../../lib/EmptyState.svelte";
+  import ErrorState from "../../lib/ErrorState.svelte";
+  import PageShell from "../../lib/PageShell.svelte";
+  import { debounce, pageUpdateHandler, sortParam } from "../../lib/table";
   import { notif } from "../../lib/notif.svelte";
   import { DataDiagnosaSchema } from "../../validation-schema";
 
   /** @type {any[]} */
-  let allRows = $state([]);
+  let rows = $state([]);
   let loading = $state(true);
   let error = $state("");
   let searchTerm = $state("");
   let reloading = $state(false);
   let currentPage = $state(1);
   let pageSize = $state(10);
+  let totalItems = $state(0);
+  /** @type {string | undefined} */
+  let sortKey = $state("nama_diagnosa");
+  /** @type {"ascending" | "descending" | "none"} */
+  let sortDirection = $state("ascending");
 
   let openAddModal = $state(false);
   let inputNamaDiagnosa = $state("");
@@ -37,32 +46,28 @@
   let deleteTargetId = $state("");
   let deleteTargetName = $state("");
 
+  /** @type {{ key: string, value: string, width?: string, sort?: false }[]} */
   const headers = [
     { key: "nama_diagnosa", value: "Nama Diagnosa", width: "80%" },
-    { key: "actions", value: "Actions" },
+    { key: "actions", value: "Actions", sort: false },
   ];
 
-  let rows = $derived(
-    searchTerm.trim() === ""
-      ? allRows
-      : allRows.filter((r) =>
-          String(r.nama_diagnosa ?? "")
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase())
-        )
-  );
-
-  $effect(() => {
-    rows;
-    currentPage = 1;
-  });
-
   async function loadData() {
+    const filters = [];
+    /** @type {Record<string, string>} */
+    const params = {};
+    const q = searchTerm.trim();
+    if (q !== "") {
+      filters.push("nama_diagnosa ~ {:q}");
+      params.q = q;
+    }
     try {
-      const records = await pb.collection("data_diagnosa").getFullList({
-        sort: "nama_diagnosa",
+      const result = await pb.collection("data_diagnosa").getList(currentPage, pageSize, {
+        filter: filters.length > 0 ? pb.filter(filters.join(" && "), params) : "",
+        sort: sortParam(sortKey, sortDirection, "nama_diagnosa"),
       });
-      allRows = records.map((/** @type {any} */ r) => ({
+      totalItems = result.totalItems;
+      rows = result.items.map((/** @type {any} */ r) => ({
         id: r.id,
         nama_diagnosa: r.nama_diagnosa,
       }));
@@ -76,6 +81,43 @@
     reloading = true;
     await loadData();
     reloading = false;
+  }
+
+  const handlePageUpdate = pageUpdateHandler(
+    () => currentPage,
+    (page) => (currentPage = page),
+    loadData,
+  );
+
+  /**
+   * Sorting dikerjakan server-side; `preventDefault` mencegah DataTable
+   * mengurutkan hanya halaman aktif (yang urutannya bisa berbeda).
+   *
+   * @param {CustomEvent<{ key: string | null, direction: "ascending" | "descending" | "none" }>} event
+   */
+  function onSort(event) {
+    event.preventDefault();
+    sortKey = event.detail.key ?? "nama_diagnosa";
+    sortDirection = event.detail.direction;
+    reloadFromFirstPage();
+  }
+
+  /**
+   * Reset ke halaman 1 lalu muat ulang. Carbon `Pagination` tidak memancarkan
+   * `update` untuk perubahan `page` programatik, jadi `loadData` dipanggil
+   * langsung di sini.
+   */
+  function reloadFromFirstPage() {
+    currentPage = 1;
+    loadData();
+  }
+
+  const applySearch = debounce(reloadFromFirstPage);
+
+  /** @param {string} value */
+  function onSearch(value) {
+    searchTerm = value;
+    applySearch();
   }
 
   /**
@@ -169,25 +211,28 @@
   onMount(() => loadData().finally(() => (loading = false)));
 </script>
 
+<PageShell title="Data Diagnosa" subtitle="Daftar diagnosa yang tersedia untuk pendaftaran.">
 {#if loading}
   <DataTableSkeleton columns={2} rows={5} headers={headers} />
 {:else if error !== ""}
-  <p class="error">{error}</p>
+  <ErrorState message="Gagal memuat data diagnosa" description={error} onRetry={reload} />
 {:else}
   <DataTable
-    title="Data Diagnosa"
     size="short"
     {headers}
     {rows}
-    {pageSize}
-    page={currentPage}
+    zebra
     sortable
+    bind:sortKey
+    bind:sortDirection
+    on:sort={onSort}
   >
     <Toolbar>
       <ToolbarContent>
         <ToolbarSearch
           bind:value={searchTerm}
-          on:clear={() => (searchTerm = "")}
+          on:input={(/** @type {any} */ e) => onSearch(e.target?.value ?? "")}
+          on:clear={() => onSearch("")}
           placeholder="Cari nama diagnosa"
           persistent
         />
@@ -230,13 +275,27 @@
     </svelte:fragment>
   </DataTable>
 
-  <Pagination
-    bind:page={currentPage}
-    bind:pageSize
-    totalItems={rows.length}
-    pageSizes={[5, 10, 20, 50]}
-    size="sm"
-  />
+  {#if totalItems === 0}
+    <EmptyState
+      title={searchTerm.trim() !== "" ? "Tidak ada hasil" : "Belum ada data diagnosa"}
+      description={searchTerm.trim() !== ""
+        ? "Tidak ada diagnosa yang cocok dengan pencarian."
+        : "Data diagnosa yang ditambahkan akan tampil di sini."}
+      actionLabel={searchTerm.trim() !== "" ? "Hapus pencarian" : "Tambah Diagnosa"}
+      onAction={searchTerm.trim() !== "" ? () => onSearch("") : () => (openAddModal = true)}
+    />
+  {:else}
+    <Pagination
+      bind:page={currentPage}
+      bind:pageSize
+      {totalItems}
+      pageSizes={[10, 20, 50]}
+      size="sm"
+      on:update={handlePageUpdate}
+    />
+  {/if}
+{/if}
+</PageShell>
 
   <Modal
     bind:open={openAddModal}
@@ -276,11 +335,3 @@
   >
     <p>Apakah Anda yakin ingin menghapus diagnosa "{deleteTargetName}"?</p>
   </Modal>
-{/if}
-
-<style>
-  .error {
-    color: var(--cds-text-error, #da1e28);
-    padding: 1rem;
-  }
-</style>
