@@ -61,10 +61,24 @@ onRecordUpdate((e) => {
 
 /**
  * Setiap item penerimaan gudang = satu baris stok_gudang baru, dan baris baru
- * selalu is_active = true. Tidak ada penggabungan jumlah, walau no_batch sama.
+ * aktif selama jumlahnya > 0. Tidak ada penggabungan jumlah, walau no_batch sama.
  */
 onRecordCreate((e) => {
-  e.record.set("is_active", true)
+  const jumlah = e.record.get("jumlah") || 0
+  e.record.set("is_active", jumlah > 0)
+  e.next()
+}, "stok_gudang")
+
+/**
+ * Stok habis (jumlah <= 0) otomatis dinonaktifkan supaya tidak muncul lagi di
+ * daftar stok gudang. Model hook dipakai supaya jalur potong stok di hook
+ * distribusi ($app.save) juga kena.
+ */
+onRecordUpdate((e) => {
+  const jumlah = e.record.get("jumlah") || 0
+  if (!(jumlah > 0)) {
+    e.record.set("is_active", false)
+  }
   e.next()
 }, "stok_gudang")
 
