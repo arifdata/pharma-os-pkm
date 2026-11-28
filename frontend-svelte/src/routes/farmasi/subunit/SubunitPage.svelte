@@ -153,7 +153,7 @@
 
     try {
       const record = await pb.collection("subunits").create({
-        subunit: parsed.data.subunit,
+        subunit: parsed.data.subunit.trim().toLowerCase(),
         is_active: inputIsActive,
       });
       closeAddModal();
@@ -181,7 +181,7 @@
 
     try {
       await pb.collection("subunits").update(editTargetId, {
-        subunit: parsed.data.subunit,
+        subunit: parsed.data.subunit.trim().toLowerCase(),
         is_active: editIsActive,
       });
       openEditModal = false;
@@ -281,6 +281,8 @@
           tooltipPosition="right"
           on:click={() => openDelete(row)}
         />
+      {:else if cell.key === "subunit"}
+        {cell.value ? cell.value.toUpperCase() : "-"}
       {:else}
         {cell.value}
       {/if}
